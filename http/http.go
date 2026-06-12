@@ -29,7 +29,8 @@ func NewHandler(
 	r := mux.NewRouter()
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+			csp := `default-src 'self'; style-src 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://viewer.diagrams.net; connect-src 'self'; img-src 'self' data:;`
+			w.Header().Set("Content-Security-Policy", csp)
 			next.ServeHTTP(w, r)
 		})
 	})
@@ -41,6 +42,13 @@ func NewHandler(
 
 	r.HandleFunc("/health", healthHandler)
 	r.PathPrefix("/static").Handler(static)
+
+	// Document portal - register before NotFoundHandler
+	r.Handle("/docs", monkey(docsPageHandler, "")).Methods("GET")
+	r.Handle("/docs/list", monkey(docsListHandler, "")).Methods("GET")
+	r.Handle("/docs/content", monkey(docsContentHandler, "")).Methods("GET")
+	r.Handle("/docs/download", monkey(docsDownloadHandler, "")).Methods("GET")
+
 	r.NotFoundHandler = index
 
 	api := r.PathPrefix("/api").Subrouter()
@@ -88,6 +96,8 @@ func NewHandler(
 	public := api.PathPrefix("/public").Subrouter()
 	public.PathPrefix("/dl").Handler(monkey(publicDlHandler, "/api/public/dl/")).Methods("GET")
 	public.PathPrefix("/share").Handler(monkey(publicShareHandler, "/api/public/share/")).Methods("GET")
+	public.Handle("/upload", monkey(publicUploadHandler, "")).Methods("POST")
+
 
 	return stripPrefix(server.BaseURL, r), nil
 }

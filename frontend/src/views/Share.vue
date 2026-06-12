@@ -1,32 +1,34 @@
 <template>
   <div>
-    <header-bar showMenu showLogo>
-      <title />
+    <template v-if="!isPreviewable || !req?.content">
+      <header-bar showMenu showLogo>
+        <title />
 
-      <action
-        v-if="fileStore.selectedCount"
-        icon="file_download"
-        :label="t('buttons.download')"
-        @action="download"
-        :counter="fileStore.selectedCount"
-      />
-      <button
-        v-if="isSingleFile()"
-        class="action copy-clipboard"
-        :aria-label="t('buttons.copyDownloadLinkToClipboard')"
-        :data-title="t('buttons.copyDownloadLinkToClipboard')"
-        @click="copyToClipboard(linkSelected())"
-      >
-        <i class="material-icons">content_paste</i>
-      </button>
-      <action
-        icon="check_circle"
-        :label="t('buttons.selectMultiple')"
-        @action="toggleMultipleSelection"
-      />
-    </header-bar>
+        <action
+          v-if="fileStore.selectedCount"
+          icon="file_download"
+          :label="t('buttons.download')"
+          @action="download"
+          :counter="fileStore.selectedCount"
+        />
+        <button
+          v-if="isSingleFile()"
+          class="action copy-clipboard"
+          :aria-label="t('buttons.copyDownloadLinkToClipboard')"
+          :data-title="t('buttons.copyDownloadLinkToClipboard')"
+          @click="copyToClipboard(linkSelected())"
+        >
+          <i class="material-icons">content_paste</i>
+        </button>
+        <action
+          icon="check_circle"
+          :label="t('buttons.selectMultiple')"
+          @action="toggleMultipleSelection"
+        />
+      </header-bar>
 
-    <breadcrumbs :base="'/share/' + hash" />
+      <breadcrumbs :base="'/share/' + hash" />
+    </template>
 
     <div v-if="layoutStore.loading">
       <h2 class="message delayed" style="padding-top: 3em !important">
@@ -74,7 +76,69 @@
       <errors v-else :errorCode="error.status" />
     </div>
     <div v-else-if="req !== null">
-      <div class="share">
+      <!-- Markdown preview mode -->
+      <div v-if="isMarkdownFile && req.content" class="share-md-preview">
+        <div class="share-md-header">
+          <h3>{{ req.name }}</h3>
+          <div class="share-md-actions">
+            <button class="share-md-btn" @click="decreasePreviewFont">
+              <i class="material-icons">remove</i>
+            </button>
+            <span class="share-md-fontsize">{{ previewFontSize }}px</span>
+            <button class="share-md-btn" @click="increasePreviewFont">
+              <i class="material-icons">add</i>
+            </button>
+            <button class="share-md-btn" @click="copyAllContent">
+              <i class="material-icons">{{ copyAllIcon }}</i>
+              {{ copyAllLabel }}
+            </button>
+            <a :href="link" class="share-md-btn" target="_blank">
+              <i class="material-icons">file_download</i>
+              {{ t("buttons.download") }}
+            </a>
+          </div>
+        </div>
+        <div class="share-md-body">
+          <div
+            id="share-preview-container"
+            class="md_preview"
+            v-html="renderedMarkdown"
+          ></div>
+        </div>
+      </div>
+
+      <!-- HTML preview mode -->
+      <div v-else-if="isHtmlFile && req.content" class="share-md-preview">
+        <div class="share-md-header">
+          <h3>{{ req.name }}</h3>
+          <div class="share-md-actions">
+            <button class="share-md-btn" @click="copyAllContent">
+              <i class="material-icons">{{ copyAllIcon }}</i>
+              {{ copyAllLabel }}
+            </button>
+            <a :href="link" class="share-md-btn" target="_blank">
+              <i class="material-icons">file_download</i>
+              {{ t("buttons.download") }}
+            </a>
+            <button v-if="snapshotHash" class="share-md-btn" @click="downloadSnapshot">
+              <i class="material-icons">image</i>
+              下载图片
+            </button>
+          </div>
+        </div>
+        <div class="share-html-body">
+          <iframe
+            ref="htmlPreviewFrame"
+            :srcdoc="htmlPreviewContent"
+            sandbox="allow-scripts allow-same-origin allow-popups"
+            class="share-html-iframe"
+            @load="resizeHtmlFrame"
+          ></iframe>
+        </div>
+      </div>
+
+      <!-- Normal share view -->
+      <div v-else class="share">
         <div
           class="share__box share__box__info"
           style="
@@ -315,6 +379,9 @@ import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
 import { copy } from "@/utils/clipboard";
+import { marked } from "marked";
+import markedKatex from "marked-katex-extension";
+import DOMPurify from "dompurify";
 
 const error = ref<StatusError | null>(null);
 const showLimit = ref<number>(100);
@@ -507,16 +574,212 @@ const copyToClipboard = (text: string) => {
   );
 };
 
+let injectedStyle: HTMLStyleElement | null = null;
+
+const hideSidebarForMdPreview = () => {
+  const style = document.createElement("style");
+  style.id = "share-preview-override";
+  style.textContent = `
+    html, body { padding: 0 !important; margin: 0 !important; height: auto !important; min-height: auto !important; }
+    #app { padding: 0 !important; height: auto !important; min-height: auto !important; }
+    header, nav, nav + .overlay, .breadcrumbs, .progress { display: none !important; }
+    main { width: 100% !important; margin: 0 !important; padding: 0 !important; height: auto !important; min-height: auto !important; }
+  `;
+  document.head.appendChild(style);
+  injectedStyle = style;
+};
+
+const restoreSidebar = () => {
+  if (injectedStyle) {
+    injectedStyle.remove();
+    injectedStyle = null;
+  }
+};
+
 onMounted(async () => {
-  // Created
   hash.value = route.params.path[0];
   window.addEventListener("keydown", keyEvent);
   await fetchData();
+  if (isPreviewable.value && req.value?.content) {
+    hideSidebarForMdPreview();
+  }
 });
 
 onBeforeUnmount(() => {
-  // Destroyed
   window.removeEventListener("keydown", keyEvent);
+  restoreSidebar();
+});
+
+// Markdown preview
+marked.use(markedKatex({ output: "mathml" as const, throwOnError: false }));
+marked.use({
+  renderer: {
+    code({ text, lang }: { text: string; lang?: string }) {
+      const langLabel = lang ? `<span class="code-lang">${lang}</span>` : "";
+      const escaped = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+      return `<div class="code-block-wrapper">
+        <div class="code-block-header">${langLabel}<button class="copy-btn" data-code="${escaped}"><i class="material-icons">content_copy</i><span>Copy</span></button></div>
+        <pre><code class="language-${lang || ""}">${escaped}</code></pre>
+      </div>`;
+    },
+  },
+});
+
+const isMarkdownFile = computed(
+  () =>
+    req.value &&
+    !req.value.isDir &&
+    (req.value.name.endsWith(".md") || req.value.name.endsWith(".markdown"))
+);
+
+const isDrawioFile = computed(
+  () =>
+    req.value &&
+    !req.value.isDir &&
+    req.value.name.endsWith(".drawio")
+);
+
+const isHtmlFile = computed(
+  () =>
+    req.value &&
+    !req.value.isDir &&
+    (req.value.name.endsWith(".html") || req.value.name.endsWith(".htm") || isDrawioFile.value)
+);
+
+const isPreviewable = computed(() => isMarkdownFile.value || isHtmlFile.value);
+
+const htmlPreviewContent = computed(() => {
+  if (!req.value?.content) return "";
+  if (isDrawioFile.value) {
+    const xml = req.value.content;
+    const config = JSON.stringify({highlight:"#0000ff",nav:true,resize:true,toolbar:"zoom layers tags lightbox",xml:xml});
+    const escaped = config.replace(/&/g,"&amp;").replace(/'/g,"&#39;").replace(/</g,"&lt;");
+    return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f8f9fa;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.mxgraph{max-width:100%}
+.geToolbar{position:fixed!important;top:8px;right:8px;z-index:999}
+</style>
+</head><body>
+<div class="mxgraph" data-mxgraph='${escaped}'></div>
+<script>
+(function(){
+  var s=document.createElement("script");
+  s.src="https://viewer.diagrams.net/js/viewer-static.min.js";
+  s.onerror=function(){
+    document.body.innerHTML='<div style="padding:40px;text-align:center;color:#666"><h2>Draw.io Viewer 加载失败</h2><p>请点击下载按钮获取 .drawio 文件，用 <a href=&quot;https://app.diagrams.net&quot; target=&quot;_blank&quot;>app.diagrams.net</a> 打开</p></div>';
+  };
+  document.body.appendChild(s);
+})();
+<\/script>
+</body></html>`;
+  }
+  return req.value.content;
+});
+
+const renderedMarkdown = computed(() => {
+  if (!isMarkdownFile.value || !req.value?.content) return "";
+  try {
+    return DOMPurify.sanitize(marked(req.value.content) as string, {
+      ADD_ATTR: ["data-code"],
+    });
+  } catch {
+    return "";
+  }
+});
+
+const htmlPreviewFrame = ref<HTMLIFrameElement>();
+
+const resizeHtmlFrame = () => {
+  const frame = htmlPreviewFrame.value;
+  if (frame?.contentDocument?.body) {
+    frame.style.height = frame.contentDocument.body.scrollHeight + "px";
+  }
+};
+
+const snapshotHash = computed(() => {
+  if (!req.value?.content || !isHtmlFile.value) return "";
+  const m = req.value.content.match(/<meta\s+name="snapshot-hash"\s+content="([^"]+)"/i);
+  return m ? m[1] : "";
+});
+
+const snapshotName = computed(() => {
+  if (!req.value?.content || !isHtmlFile.value) return "snapshot.png";
+  const m = req.value.content.match(/<meta\s+name="snapshot-name"\s+content="([^"]+)"/i);
+  return m ? m[1] : "snapshot.png";
+});
+
+const downloadSnapshot = async () => {
+  if (!snapshotHash.value) return;
+  try {
+    const resp = await fetch(`/api/public/dl/${snapshotHash.value}`);
+    const blob = await resp.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = snapshotName.value;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch {
+    window.open(`/api/public/dl/${snapshotHash.value}`, "_blank");
+  }
+};
+
+const previewFontSize = ref(16);
+
+const increasePreviewFont = () => {
+  previewFontSize.value += 1;
+  const el = document.getElementById("share-preview-container");
+  if (el) el.style.fontSize = previewFontSize.value + "px";
+};
+
+const decreasePreviewFont = () => {
+  if (previewFontSize.value > 10) {
+    previewFontSize.value -= 1;
+    const el = document.getElementById("share-preview-container");
+    if (el) el.style.fontSize = previewFontSize.value + "px";
+  }
+};
+
+const copyAllIcon = ref("content_copy");
+const copyAllLabel = ref("Copy All");
+
+const copyAllContent = () => {
+  const content = req.value?.content || "";
+  copy({ text: content }).then(() => {
+    copyAllIcon.value = "check";
+    copyAllLabel.value = "Copied!";
+    setTimeout(() => {
+      copyAllIcon.value = "content_copy";
+      copyAllLabel.value = "Copy All";
+    }, 2000);
+  });
+};
+
+onMounted(() => {
+  document.addEventListener("click", (e: Event) => {
+    const btn = (e.target as HTMLElement).closest(".copy-btn");
+    if (!btn) return;
+    const code =
+      (btn as HTMLElement).dataset.code
+        ?.replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"') || "";
+    copy({ text: code }).then(() => {
+      const span = btn.querySelector("span");
+      if (span) {
+        span.textContent = "Copied!";
+        setTimeout(() => (span.textContent = "Copy"), 2000);
+      }
+    });
+  });
 });
 </script>
 
@@ -534,5 +797,101 @@ onBeforeUnmount(() => {
     height: calc(100vh - 9.8em);
     overflow-y: auto;
   }
+}
+
+.share-md-preview {
+  max-width: 92%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .share-md-preview {
+    max-width: 100%;
+    padding: 0 0.5em;
+  }
+}
+
+.share-md-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: #f6f8fa;
+  border: 1px solid #d1d9e0;
+  border-radius: 8px 8px 0 0;
+  margin-top: 0;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.share-md-header h3 {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 600;
+  color: #1f2328;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+.share-md-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.share-md-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2328;
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: none;
+  transition: all 0.12s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.share-md-btn:hover {
+  background: #f3f4f6;
+  border-color: #9a9fa5;
+}
+
+.share-md-btn i {
+  font-size: 16px;
+}
+
+.share-md-fontsize {
+  font-size: 13px;
+  color: #656d76;
+  min-width: 3em;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+.share-md-body {
+  border: 1px solid #d1d9e0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: #fff;
+  margin-bottom: 0;
+}
+
+.share-html-body {
+  border: 1px solid #d1d9e0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: #fff;
+  margin-bottom: 0;
+}
+
+.share-html-iframe {
+  width: 100%;
+  height: 0;
+  border: none;
+  border-radius: 0 0 8px 8px;
 }
 </style>

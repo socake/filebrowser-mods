@@ -44,7 +44,12 @@
       <div class="editor-header">
         <Breadcrumbs base="/files" noLink />
 
-        <div>
+        <div v-if="isPreview && isMarkdownFile">
+          <button ref="copyAllBtn" @click="copyAll()">
+            <span><i class="material-icons">{{ copyAllIcon }}</i> {{ copyAllLabel }}</span>
+          </button>
+        </div>
+        <div v-else>
           <button
             :disabled="isSelectionEmpty"
             @click="executeEditorCommand('copy')"
@@ -114,16 +119,33 @@ const router = useRouter();
 const editor = ref<Ace.Editor | null>(null);
 const fontSize = ref(parseInt(localStorage.getItem("editorFontSize") || "14"));
 
-const isPreview = ref(false);
-const previewContent = ref("");
 const isMarkdownFile =
   fileStore.req?.name.endsWith(".md") ||
   fileStore.req?.name.endsWith(".markdown");
+const isPreview = ref(!!isMarkdownFile);
+const previewContent = ref("");
 const katexOptions = {
   output: "mathml" as const,
   throwOnError: false,
 };
 marked.use(markedKatex(katexOptions));
+
+marked.use({
+  renderer: {
+    code({ text, lang }: { text: string; lang?: string }) {
+      const langLabel = lang ? `<span class="code-lang">${lang}</span>` : "";
+      const escaped = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+      return `<div class="code-block-wrapper">
+        <div class="code-block-header">${langLabel}<button class="copy-btn" data-code="${escaped}"><i class="material-icons">content_copy</i><span>Copy</span></button></div>
+        <pre><code class="language-${lang || ""}">${escaped}</code></pre>
+      </div>`;
+    },
+  },
+});
 
 const isSelectionEmpty = ref(true);
 
@@ -160,17 +182,48 @@ onMounted(() => {
 
   const fileContent = fileStore.req?.content || "";
 
-  watchEffect(async () => {
+  const previewContainer = document.getElementById("preview-container");
+  if (previewContainer) {
+    previewContainer.addEventListener("click", (e: Event) => {
+      const btn = (e.target as HTMLElement).closest(".copy-btn");
+      if (!btn) return;
+      const code = (btn as HTMLElement).dataset.code
+        ?.replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"') || "";
+      copy({ text: code }).then(() => {
+        const span = btn.querySelector("span");
+        if (span) {
+          span.textContent = "Copied!";
+          setTimeout(() => (span.textContent = "Copy"), 2000);
+        }
+      });
+    });
+  }
+
+  const renderPreview = async () => {
     if (isMarkdownFile && isPreview.value) {
-      const new_value = editor.value?.getValue() || "";
+      const content = editor.value?.getValue() || fileStore.req?.content || "";
       try {
-        previewContent.value = DOMPurify.sanitize(await marked(new_value));
+        previewContent.value = DOMPurify.sanitize(await marked(content), {
+          ADD_ATTR: ["data-code"],
+        });
       } catch (error) {
         console.error("Failed to convert content to HTML:", error);
         previewContent.value = "";
       }
     }
+  };
+
+  watchEffect(async () => {
+    await renderPreview();
+    applyPreviewFontSize();
   });
+
+  if (isMarkdownFile) {
+    renderPreview().then(applyPreviewFontSize);
+  }
 
   ace.config.set(
     "basePath",
@@ -281,9 +334,30 @@ const save = async (throwError?: boolean) => {
   }
 };
 
+const copyAllIcon = ref("content_copy");
+const copyAllLabel = ref("Copy All");
+
+const copyAll = () => {
+  const content = editor.value?.getValue() || fileStore.req?.content || "";
+  copy({ text: content }).then(() => {
+    copyAllIcon.value = "check";
+    copyAllLabel.value = "Copied!";
+    setTimeout(() => {
+      copyAllIcon.value = "content_copy";
+      copyAllLabel.value = "Copy All";
+    }, 2000);
+  });
+};
+
+const applyPreviewFontSize = () => {
+  const el = document.getElementById("preview-container");
+  if (el) el.style.fontSize = fontSize.value + "px";
+};
+
 const increaseFontSize = () => {
   fontSize.value += 1;
   editor.value?.setFontSize(fontSize.value);
+  applyPreviewFontSize();
   localStorage.setItem("editorFontSize", fontSize.value.toString());
 };
 
@@ -291,6 +365,7 @@ const decreaseFontSize = () => {
   if (fontSize.value > 1) {
     fontSize.value -= 1;
     editor.value?.setFontSize(fontSize.value);
+    applyPreviewFontSize();
     localStorage.setItem("editorFontSize", fontSize.value.toString());
   }
 };
