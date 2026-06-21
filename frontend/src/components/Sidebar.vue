@@ -2,12 +2,12 @@
   <div v-show="active" @click="closeHovers" class="overlay"></div>
   <nav :class="{ active }">
     <template v-if="isLoggedIn">
-      <button @click="toAccountSettings" class="action">
-        <i class="material-icons">person</i>
+      <button @click="toAccountSettings" class="action sb-user">
+        <i class="material-icons">account_circle</i>
         <span>{{ user.username }}</span>
       </button>
       <button
-        class="action"
+        class="action sb-myfiles"
         @click="toRoot"
         :aria-label="$t('sidebar.myFiles')"
         :title="$t('sidebar.myFiles')"

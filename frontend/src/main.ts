@@ -19,6 +19,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import duration from "dayjs/plugin/duration";
 
 import "./css/styles.css";
+import "./css/lumen-theme.css";
 
 // register dayjs plugins globally
 dayjs.extend(localizedFormat);

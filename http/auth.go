@@ -32,6 +32,7 @@ type userInfo struct {
 	Commands              []string          `json:"commands"`
 	LockPassword          bool              `json:"lockPassword"`
 	HideDotfiles          bool              `json:"hideDotfiles"`
+	DisableThumbnails     bool              `json:"disableThumbnails"`
 	DateFormat            bool              `json:"dateFormat"`
 	Username              string            `json:"username"`
 	AceEditorTheme        string            `json:"aceEditorTheme"`
@@ -224,6 +225,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 			LockPassword:          user.LockPassword,
 			Commands:              user.Commands,
 			HideDotfiles:          user.HideDotfiles,
+			DisableThumbnails:     user.DisableThumbnails,
 			DateFormat:            user.DateFormat,
 			Username:              user.Username,
 			AceEditorTheme:        user.AceEditorTheme,

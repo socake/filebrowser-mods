@@ -12,6 +12,14 @@
             {{ t("settings.hideDotfiles") }}
           </p>
           <p>
+            <input
+              type="checkbox"
+              name="loadThumbnails"
+              v-model="loadThumbnails"
+            />
+            {{ t("settings.loadThumbnails") }}
+          </p>
+          <p>
             <input type="checkbox" name="singleClick" v-model="singleClick" />
             {{ t("settings.singleClick") }}
           </p>
@@ -123,6 +131,7 @@ const passwordConf = ref<string>("");
 const currentPassword = ref<string>("");
 const isCurrentPasswordRequired = ref<boolean>(false);
 const hideDotfiles = ref<boolean>(false);
+const loadThumbnails = ref<boolean>(true);
 const singleClick = ref<boolean>(false);
 const redirectAfterCopyMove = ref<boolean>(false);
 const dateFormat = ref<boolean>(false);
@@ -148,6 +157,7 @@ onMounted(async () => {
   if (authStore.user === null) return false;
   locale.value = authStore.user.locale;
   hideDotfiles.value = authStore.user.hideDotfiles;
+  loadThumbnails.value = !authStore.user.disableThumbnails;
   singleClick.value = authStore.user.singleClick;
   redirectAfterCopyMove.value = authStore.user.redirectAfterCopyMove;
   dateFormat.value = authStore.user.dateFormat;
@@ -196,6 +206,7 @@ const updateSettings = async (event: Event) => {
       id: authStore.user.id,
       locale: locale.value,
       hideDotfiles: hideDotfiles.value,
+      disableThumbnails: !loadThumbnails.value,
       singleClick: singleClick.value,
       redirectAfterCopyMove: redirectAfterCopyMove.value,
       dateFormat: dateFormat.value,
@@ -205,6 +216,7 @@ const updateSettings = async (event: Event) => {
     await api.update(data, [
       "locale",
       "hideDotfiles",
+      "disableThumbnails",
       "singleClick",
       "redirectAfterCopyMove",
       "dateFormat",

@@ -1,0 +1,95 @@
+/* ============================================================
+   LumenBrowser 主题覆盖层
+   不修改原 filebrowser 的 base/styles 等 CSS，仅以高特异性叠加，
+   便于回退与跟踪上游 diff。本轮聚焦侧栏视觉。
+   ============================================================ */
+
+/* —— 侧栏整体 —— */
+nav {
+  padding: 14px 12px;
+  box-sizing: border-box;
+}
+
+/* 导航项：圆角、舒适内距、图标文字对齐、hover 高亮 */
+nav .action {
+  display: flex !important;
+  align-items: center;
+  gap: 11px;
+  border-radius: 10px !important;
+  padding: 11px 12px !important;
+  font-size: 0.95em !important;
+  font-weight: 500;
+  color: #5f5f63;
+  margin-bottom: 2px;
+  transition:
+    0.12s ease background,
+    0.12s ease color;
+}
+nav .action:hover {
+  background: rgba(20, 20, 20, 0.06) !important;
+}
+nav .action .material-icons {
+  font-size: 20px !important;
+  margin: 0 !important;
+}
+nav .action span {
+  vertical-align: middle;
+}
+
+/* 去掉分组之间生硬的分隔线，改用留白 */
+nav > div {
+  border-top: 0 !important;
+  margin-top: 4px;
+  padding-top: 0;
+}
+
+/* 用户区：卡片化 */
+nav .sb-user {
+  background: #f3f3f4;
+  margin-bottom: 12px !important;
+  padding: 13px 12px !important;
+  border-radius: 12px !important;
+}
+nav .sb-user .material-icons {
+  font-size: 26px !important;
+  color: #141414 !important;
+}
+nav .sb-user span {
+  font-weight: 650;
+  font-size: 1.05em;
+  color: #141414;
+}
+
+/* 当前项高亮：我的文件 */
+nav .sb-myfiles {
+  background: #141414 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+nav .sb-myfiles .material-icons {
+  color: #fff !important;
+}
+nav .sb-myfiles:hover {
+  background: #000 !important;
+}
+
+/* 存储进度：卡片化（覆盖原 inline 样式） */
+nav .credits {
+  background: #f3f3f4 !important;
+  border-radius: 12px !important;
+  padding: 14px !important;
+  margin: 14px 0 !important;
+  width: auto !important;
+  font-size: 0.78em !important;
+  color: #9a9a9e !important;
+  line-height: 1.6;
+}
+
+/* 登出项：hover 用警示红 */
+nav #logout:hover {
+  background: rgba(229, 72, 77, 0.1) !important;
+  color: #e5484d !important;
+}
+nav #logout:hover .material-icons {
+  color: #e5484d !important;
+}

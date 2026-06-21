@@ -115,7 +115,7 @@ const thumbnailUrl = computed(() => {
 });
 
 const isThumbsEnabled = computed(() => {
-  return enableThumbs;
+  return enableThumbs && !authStore.user?.disableThumbnails;
 });
 
 const humanSize = () => {

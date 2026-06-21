@@ -227,6 +227,7 @@
     "globalRules": "这是全局允许与禁止规则。它们作用于所有用户。你可以给每个用户定义单独的特殊规则来覆盖全局规则。",
     "globalSettings": "全局设置",
     "hideDotfiles": "不显示隐藏文件",
+    "loadThumbnails": "加载图片缩略图预览",
     "insertPath": "插入路径",
     "insertRegex": "插入正则表达式",
     "instanceName": "实例名称",
