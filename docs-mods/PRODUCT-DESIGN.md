@@ -91,7 +91,9 @@ LumenBrowser
 ### 4.1 视觉规范（Design Tokens）
 
 整体走**纯白 To C 极简风**：只用「白 + 近黑」一个强调色，零彩色、零渐变，把焦点压在产品本身。
-以下 token 取自落地页/功能页 mock，作为产品 UI 的统一规范。
+以下 token 取自落地页/功能页 mock，作为产品 UI 的统一规范。**该规范已落地**：通过独立覆盖层
+`frontend/src/css/lumen-theme.css` 叠加到实际后台界面（侧栏、当前项高亮、存储卡片、文件树面板等），
+不改 filebrowser 原始 `base.css`，便于回退与跟踪上游 diff。
 
 | Token | 值 | 用途 |
 |---|---|---|
@@ -122,21 +124,31 @@ LumenBrowser
 - 交互一律微动（`transition:.15s`），不做花哨动画
 
 **图标**
-- 产品图标 `assets/icon.svg`：圆角方形容器内一个发光光点 + 透出的光芒，纯单色 `#141414` 描边，呼应「文件之光」。
-- 界面内图标统一用**细描边几何**（`1.6~2px` border，圆角 `3~4px`），不引入彩色 icon set。
+- 产品图标 `branding/icon.svg`（前端 logo 为 `frontend/public/img/logo.svg`）：圆角方形容器内一个发光光点 +
+  透出的光芒，纯单色 `#141414` 描边，呼应「文件之光」。
+- 界面 chrome 图标（侧栏、顶栏、面包屑）仍用单色 material-icons，保持极简。
+- **文件类型图标（已落地）**：列表内的文件改用一套 **16 个彩色 PNG**
+  （`frontend/public/img/file-icons/`，按扩展名映射，详见 [`FEATURES.md`](./FEATURES.md) §6.4），
+  让 PDF / Word / 图片 / 代码 等一眼可辨 —— 这是对早期「界面内不引入彩色 icon set」设想的有意调整。
 
 ### 4.2 主要界面与交互流程
 
 #### A. 文件浏览（私有，主界面）
 
-- **布局**：左侧固定侧栏（约 `210px`）+ 右侧主区。侧栏分组「资源库」，含「我的文件 / 公开文档门户 /
-  分享链接 / 投递箱 / 设置」导航项，active 项浅底 `--panel` + 加粗。
+- **布局**：左侧固定侧栏 + 右侧主区。侧栏顶部为**用户卡片**，下方为导航项（圆角、hover 浅灰高亮），
+  **当前项随路由自动高亮**（`Sidebar.vue` 按 `$route.path` 判断，高亮态为近黑底白字），底部为**卡片化存储用量**。
+  （已落地，见 [`FEATURES.md`](./FEATURES.md) §6.2）
 - **主区**：顶部面包屑（`root / documents`，当前段用 `--ink` 加粗），下方文件网格（卡片：细边框、
-  `10px` 圆角、缩略图占位 + 文件名单行省略）。两种视图模式：列表 `list` / 网格 `mosaic`（对应用户 `viewMode`）。
+  `10px` 圆角、缩略图/文件类型图标占位 + 文件名单行省略）。两种视图模式：列表 `list` / 网格 `mosaic`（对应用户 `viewMode`）。
+- **可选右侧文件树面板**（`FileTree.vue`，已落地）：顶栏一键开关（默认关，状态记忆到 `localStorage`），
+  懒加载子目录、进入当前路径自动展开一层、`userTouched` 干预态、每个文件夹显示项目数 badge（折叠也显示）。
+  详见 [`FEATURES.md`](./FEATURES.md) §6.3。
 - **交互**：
   - 列目录走 `GET /api/resources/<path>`，返回 `Listing`（含 `items / numDirs / numFiles / sorting`）。
   - 单击进入目录 / 打开文件（受用户 `singleClick` 偏好影响）。
   - 排序按 name / size / modified，升降序由用户 `sorting` 决定，前端可切换。
+  - 文件按扩展名显示彩色类型图标（`ListingItem.vue` + `file-icons/`，已落地）。
+  - **缩略图可关**：设置里 per-user 开关 `disableThumbnails`，关闭后网格用文件图标占位、不请求缩略图（已落地，§6.5）。
   - 文本文件可在内置编辑器中查看/编辑（`Editor.vue`，带 Markdown 预览）。
 
 #### B. 上传

@@ -1,7 +1,5 @@
 <p align="center">
-  <!-- branding 占位：把 LumenBrowser 的 banner 放到 branding/banner.png 后替换下面这行 -->
-  <!-- <img src="branding/banner.png" width="550"/> -->
-  <strong>LumenBrowser</strong>
+  <img src="branding/banner.png" width="550" alt="LumenBrowser"/>
 </p>
 
 <p align="center"><em>你的文件之光 / Bring your files to light</em></p>
@@ -42,6 +40,16 @@ LumenBrowser 是一个**自托管的文件存储 / 分享 + 轻量文档协作�
 - **增强分享页** —— 分享链接支持 Markdown / 文本在线预览与语法高亮，密码分享交互更顺，不再只能盲下载。
 
 > ⚠️ **安全提示**：对外协作层（`/docs`、`/api/public/upload`）当前是**匿名开放**的，定位适合**可信内网或临时场景**。裸暴露公网前请评估访问控制、限速与敏感文件过滤等事项。
+
+### 产品化界面（二改差异化）
+
+把原版偏「工具感」的后台界面，重做成一套干净的纯白 To C 体验。所有改动以独立覆盖层（`lumen-theme.css`）叠加，不动 filebrowser 原始 CSS，便于跟踪上游 diff。
+
+- **品牌化**：产品名 LumenBrowser，logo / favicon 已替换；前端主色从原版蓝改为近黑 `#141414` + 纯白的极简风（零彩色、零渐变）。
+- **侧栏改造**：顶部用户卡片，导航项圆角 + hover 高亮，**当前项随路由自动高亮**，底部存储用量卡片化。
+- **右侧文件树面板**：可选的目录树侧栏，懒加载子目录、进入当前路径自动展开一层、每个文件夹显示项目数 badge（折叠也显示）。顶栏一键开关，状态记忆到本地（默认关闭）。
+- **文件类型彩色图标**：按扩展名给文件配上彩色图标（PDF / Word / Excel / PPT / Markdown / 图片 / 视频 / 音频 / 压缩包 / 代码 / JSON 等），列表一眼可辨，未知类型有兜底图标。
+- **图片预览开关**：设置里可关闭缩略图（per-user），关闭后网格用文件图标占位、不再请求缩略图，弱网或大目录更轻快。
 
 ### 自托管
 
