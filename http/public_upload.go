@@ -91,7 +91,8 @@ var publicUploadHandler handleFunc = func(w http.ResponseWriter, r *http.Request
 	}
 
 	// Create permanent share link
-	hashBytes := make([]byte, 6)
+	// 与 http/share.go 保持一致的 24 字节熵，避免分享链接被遍历/猜测。
+	hashBytes := make([]byte, 24)
 	if _, err := rand.Read(hashBytes); err != nil {
 		return http.StatusInternalServerError, err
 	}

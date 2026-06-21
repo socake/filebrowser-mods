@@ -1,32 +1,130 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/filebrowser/filebrowser/master/branding/banner.png" width="550"/>
+  <!-- branding 占位：把 LumenBrowser 的 banner 放到 branding/banner.png 后替换下面这行 -->
+  <!-- <img src="branding/banner.png" width="550"/> -->
+  <strong>LumenBrowser</strong>
 </p>
 
-[![Build](https://github.com/filebrowser/filebrowser/actions/workflows/ci.yaml/badge.svg)](https://github.com/filebrowser/filebrowser/actions/workflows/ci.yaml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/filebrowser/filebrowser/v2)](https://goreportcard.com/report/github.com/filebrowser/filebrowser/v2)
-[![Version](https://img.shields.io/github/release/filebrowser/filebrowser.svg)](https://github.com/filebrowser/filebrowser/releases/latest)
+<p align="center"><em>你的文件之光 / Bring your files to light</em></p>
 
-File Browser provides a file managing interface within a specified directory and it can be used to upload, delete, preview and edit your files. It is a **create-your-own-cloud**-kind of software where you can just install it on your server, direct it to a path and access your files through a nice web interface.
+LumenBrowser 是一个**自托管的文件存储 / 分享 + 轻量文档协作门户**，面向个人与小团队。它把一台服务器（或一个目录）变成干净、私有、完全归你掌控的文件库：对内是带登录的多用户文件管理器，对外是免登录的文档门户与投递箱。
 
-## Documentation
+整套产品是**单个 Go 二进制 + 一个数据库文件**（前端已内嵌进可执行文件），Docker 一行即可启动，数据始终留在你自己的服务器上。
 
-Documentation on how to install, configure, and contribute to this project is hosted at [filebrowser.org](https://filebrowser.org).
+> LumenBrowser 基于开源项目 [filebrowser](https://github.com/filebrowser/filebrowser) v2.62.2 二次开发，遵循 Apache License 2.0。仓库：`github.com/socake/filebrowser-mods`。
 
-## Project Status
+---
 
-This project is a finished product which fulfills its goal: be a single binary web File Browser which can be run by anyone anywhere. That means that File Browser is currently on **maintenance-only** mode. Therefore, please note the following:
+## 核心功能
 
-- It can take a while until someone gets back to you. Please be patient.
-- [Issues](https://github.com/filebrowser/filebrowser/issues) are meant to track bugs. Unrelated issues will be converted into [discussions](https://github.com/filebrowser/filebrowser/discussions).
-- The priority is triaging issues, addressing security issues and reviewing pull requests meant to solve bugs.
-- No new features are planned. Pull requests for new features are not guaranteed to be reviewed.
+### 文件管理（私有，需登录，多用户）
 
-Please read [@hacdias' personal reflection](https://hacdias.com/2026/03/11/filebrowser/) on the project status.
+继承自 filebrowser 成熟的文件管理内核：
 
-## Contributing
+- 浏览 / 列目录、新建目录、上传、保存覆盖、复制 / 重命名 / 移动、删除
+- 大文件**断点续传**（tus 协议），传输中断后可续传
+- 原始下载与**打包下载**（zip / tar / targz 等多种格式）
+- 缩略图 / 预览图、字幕、磁盘用量、流式搜索
+- 多用户与细粒度权限位（create / modify / rename / delete / download / share），管理员可管理用户与全局设置
+- 内置编辑器，文本 / Markdown 在线编辑并预览
 
-Contributions are always welcome. To start contributing to this project, read our [guidelines](CONTRIBUTING.md) first.
+### 分享
+
+- 对任意文件 / 目录生成分享链接，可选**设置密码与有效期**
+- 分享 hash 采用 **24 字节** 随机熵（base64-url），显著抗遍历与猜测
+- 「我的分享」列表与撤销；过期分享惰性清理
+
+### 对外协作层（二改差异化，重点）
+
+经典 filebrowser 的全部接口都在 `/api` 鉴权链路上（私有）。LumenBrowser 的核心差异化在于新增了一组**匿名免登录、注册在根 router** 的对外接口：
+
+- **公开文档门户 `/docs`** —— 把服务器 root 目录当成一份在线文档库**只读对外展示**。零依赖单页（HTML 内嵌进二进制），左侧目录树 + 右侧预览，支持 Markdown 渲染、代码高亮（highlight.js）、drawio 图（diagrams.net viewer）。列表与预览自动跳过点开头文件及敏感名文件（`credentials / secrets / password / .env / id_rsa / id_ed25519 / token`）。
+- **免登录投递箱 `POST /api/public/upload`** —— 任何人 POST 一个文件即可拿到永久分享链接，文件落到 `/uploads/` 并加时间戳前缀防冲突。适合收作业、收外部投稿等场景。
+- **增强分享页** —— 分享链接支持 Markdown / 文本在线预览与语法高亮，密码分享交互更顺，不再只能盲下载。
+
+> ⚠️ **安全提示**：对外协作层（`/docs`、`/api/public/upload`）当前是**匿名开放**的，定位适合**可信内网或临时场景**。裸暴露公网前请评估访问控制、限速与敏感文件过滤等事项。
+
+### 自托管
+
+- 单二进制 + 单数据库文件，前端 dist 已内嵌，无需额外运行时
+- 数据全程在你自己的服务器上，不经过任何第三方
+- Docker 一行启动，或源码 `go build` 自行构建
+
+---
+
+## CLI 客户端 `lumen`
+
+`lumen` 是 LumenBrowser 的命令行客户端（仓库内独立 Go 模块 `github.com/socake/filebrowser-mods/client`，第一版刻意零外部依赖、纯标准库）。服务端无需任何改动，全部走既有 REST API，便于**脚本化、CI 集成、批量上传与定时备份**。
+
+```bash
+# 登录并保存连接配置到 ~/.lumen/config.json
+lumen login https://files.example.com -u alice -p secret
+
+# 列出远程目录
+lumen ls /documents
+
+# 免登录投递：上传文件即得永久分享链接
+lumen drop ./report.pdf --server https://files.example.com
+```
+
+当前 `login` / `ls` / `drop` 为最小验证链路（骨架推进中），`put / get / rm / mv / mkdir / share / shares / search` 等命令在规划中。完整命令表、状态与配置说明见 [`client/README.md`](client/README.md)。
+
+---
+
+## 部署
+
+### Docker
+
+最简单的方式是用 Docker Compose（仓库根 `compose.yaml`，含可选 Redis 缓存）：
+
+```bash
+docker compose up --build
+```
+
+或自行构建镜像后用 `docker run`（容器内监听 80 端口，数据卷为 `/srv`、配置 `/config`、数据库 `/database`）：
+
+```bash
+docker build -t lumenbrowser .
+docker run -d \
+  -p 8080:80 \
+  -v $(pwd)/srv:/srv \
+  -v $(pwd)/config:/config \
+  -v $(pwd)/database:/database \
+  lumenbrowser
+```
+
+### 源码构建（前端已内嵌）
+
+需要 Go 1.25+。前端构建产物会通过 `go:embed` 打进最终二进制：
+
+```bash
+# 1. 构建前端
+cd frontend && pnpm install && pnpm build && cd ..
+
+# 2. 构建后端（产物内嵌前端 dist）
+go build -o filebrowser
+
+# 3. 运行
+./filebrowser --address 0.0.0.0 --port 8080 --root <要暴露的目录> --database ./filebrowser.db
+```
+
+CLI 单独构建：
+
+```bash
+go build -o lumen ./client
+```
+
+---
+
+## 与上游 filebrowser 的关系 / 致谢
+
+LumenBrowser 站在 [filebrowser](https://github.com/filebrowser/filebrowser)（v2.62.2）的肩膀上构建，复用了它经过验证的文件管理内核（资源 CRUD、断点续传、预览、搜索、分享、多用户权限）。在此基础上，本分支补齐了一整套**对外协作层**（文档门户、免登录投递箱、增强分享页、Markdown 优先）并做了若干安全加固。
+
+为保持可对照，仓库的 Go module 路径仍是上游的 `github.com/filebrowser/filebrowser/v2`；分支约定为 `master` = 纯净上游、`my-mods` = 本人二改，两者 diff 即全部改动。
+
+衷心感谢 filebrowser 的作者与所有贡献者。本项目遵循上游的 **Apache License 2.0**，并在根目录 [`NOTICE`](NOTICE) 中保留原始版权归属、列明本分支的主要修改。
+
+---
 
 ## License
 
-[Apache License 2.0](LICENSE) © File Browser Contributors
+[Apache License 2.0](LICENSE)。本产品基于 filebrowser（同为 Apache-2.0）二次开发，原始版权归 File Browser Contributors，二改部分版权归 LumenBrowser 贡献者。详见 [`LICENSE`](LICENSE) 与 [`NOTICE`](NOTICE)。

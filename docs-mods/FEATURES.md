@@ -1,6 +1,6 @@
 # 二改功能说明
 
-基于 [filebrowser](https://github.com/filebrowser/filebrowser) v2.62.2（MIT License）的个人定制。
+基于 [filebrowser](https://github.com/filebrowser/filebrowser) v2.62.2（Apache-2.0 License）的个人定制。
 原版是一个带登录的私有文件管理器，本分支在其之上增加了**对外的文档门户**、**公开投递箱**，并增强了分享页与 Markdown 预览。
 
 > 分支约定：`master` = 纯净上游 v2.62.2；`my-mods` = 本人二改。两者 diff 即全部改动。
@@ -43,11 +43,14 @@
   "filename": "report.pdf",
   "size": 102400,
   "path": "/uploads/20260612-103000_report.pdf",
-  "share_hash": "Ab3xYz",
-  "download_url": "/api/public/dl/Ab3xYz",
-  "browse_url": "/share/Ab3xYz"
+  "share_hash": "k3Jq8vR2mNpX7wZ1aB4cD6eF9gH0iJ5L",
+  "download_url": "/api/public/dl/k3Jq8vR2mNpX7wZ1aB4cD6eF9gH0iJ5L",
+  "browse_url": "/share/k3Jq8vR2mNpX7wZ1aB4cD6eF9gH0iJ5L"
 }
 ```
+
+> 投递箱的 `share_hash` 用 24 字节随机熵（base64url 编码，约 32 字符），已与 `POST /api/share`
+> 的分享接口（`http/share.go`）保持一致，不再是早期的 6 字节短 hash。
 
 **用法**
 ```bash

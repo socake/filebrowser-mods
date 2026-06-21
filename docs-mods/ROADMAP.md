@@ -22,6 +22,8 @@
    `POST /api/public/upload` 无 auth、无限速、无类型校验，单文件 1GB，且生成**永久**分享。
    任何人可填满磁盘、上传恶意文件、刷爆分享表。
    → 选项：加上传 token / 一次性凭证、限速、单 IP 配额、文件类型白名单、分享默认带过期。
+   - ✅ **已修复（子项）：投递箱分享 hash 熵不足**——原 `make([]byte, 6)`（约 8 字符）熵偏低、易被遍历，
+     现已改为 `make([]byte, 24)`，与 `http/share.go` 对齐。无鉴权 / 无限速 / 永久分享等其余缺口仍待处理。
 
 4. **CSP 引入 `unsafe-eval` + 外链 CDN**
    为了 diagrams.net viewer 放开了 `unsafe-eval`，并信任 cdnjs / viewer.diagrams.net。

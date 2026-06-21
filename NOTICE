@@ -1,0 +1,45 @@
+LumenBrowser
+Copyright 2026 LumenBrowser Contributors
+
+This product is based on, and is a derivative work of, File Browser
+(https://github.com/filebrowser/filebrowser), which is licensed under the
+Apache License, Version 2.0.
+
+    File Browser
+    Copyright File Browser Contributors
+
+The original File Browser source is distributed under the Apache License,
+Version 2.0; a copy of that license is included in the LICENSE file at the
+root of this repository. The original copyright notices and attribution of
+the upstream project are retained.
+
+This distribution is a fork (branch "my-mods") derived from File Browser
+v2.62.2. To keep the changes auditable, the Go module path is unchanged
+(github.com/filebrowser/filebrowser/v2); branch "master" tracks the pristine
+upstream and "my-mods" carries the modifications below.
+
+Primary modifications introduced by this fork (LumenBrowser):
+
+  * Public documentation portal (/docs) — an anonymous, read-only web portal
+    over the server root, with a directory tree, Markdown rendering, code
+    highlighting and drawio diagram preview, served as a self-contained page
+    embedded in the binary.
+
+  * Anonymous drop box (POST /api/public/upload) — a login-free upload
+    endpoint that stores files under /uploads/ and returns a permanent share
+    link.
+
+  * Enhanced share pages — inline Markdown / text preview with syntax
+    highlighting and an improved password-share flow, instead of
+    download-only sharing.
+
+  * Security hardening — increased share-hash entropy (24-byte, base64-url)
+    for both authenticated shares and drop-box shares, sensitive-file
+    filtering in the documentation portal, and related CSP adjustments.
+
+  * lumen CLI client — an independent, dependency-light Go module
+    (github.com/socake/filebrowser-mods/client) that wraps the existing REST
+    API for scripting, CI and batch workflows.
+
+Modifications are licensed under the same Apache License, Version 2.0.
+Use of any included trademarks or names does not imply endorsement.
