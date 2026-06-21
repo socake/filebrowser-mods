@@ -48,6 +48,7 @@ html[dir="rtl"] #listing {
 #listing .item .size,
 #listing .item .modified {
   font-size: 0.9em;
+  color: var(--textPrimary);
 }
 
 #listing .item .name {
@@ -162,9 +163,14 @@ html[dir="rtl"] #listing {
 #listing.list .item {
   width: 100%;
   margin: 0;
-  border: 1px solid var(--borderPrimary);
-  padding: 1em;
-  border-top: 0;
+  border: 0;
+  border-bottom: 1px solid var(--divider);
+  padding: 0.95em 1.2em;
+  transition: 0.12s ease background;
+}
+
+#listing.list .item:not(.header):hover {
+  background: var(--hover);
 }
 
 #listing.list h2 {
@@ -216,11 +222,12 @@ html[dir="rtl"] #listing {
 
 #listing.list .item.header {
   display: flex !important;
-  background: var(--background);
+  background: var(--surfacePrimary);
   z-index: 999;
-  padding: 0.85em;
+  padding: 0.75em 1.2em;
   border: 0;
   border-bottom: 1px solid var(--borderPrimary);
+  font-size: 0.85em;
 }
 
 #listing.list .item.header > div {
@@ -236,7 +243,8 @@ html[dir="rtl"] #listing {
 }
 
 #listing.list .name {
-  font-weight: normal;
+  font-weight: 500;
+  color: var(--textSecondary);
   word-wrap: break-word;
   word-break: break-all;
   white-space: pre-wrap;

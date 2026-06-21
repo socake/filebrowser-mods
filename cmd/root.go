@@ -402,7 +402,7 @@ func quickSetup(v *viper.Viper, s *storage.Storage) error {
 		UserHomeBasePath:      settings.DefaultUsersHomeBasePath,
 		Defaults: settings.UserDefaults{
 			Scope:                 ".",
-			Locale:                "en",
+			Locale:                "zh-cn",
 			SingleClick:           false,
 			RedirectAfterCopyMove: true,
 			AceEditorTheme:        v.GetString("defaults.aceEditorTheme"),
@@ -470,14 +470,12 @@ func quickSetup(v *viper.Viper, s *storage.Storage) error {
 	password := v.GetString("password")
 
 	if password == "" {
-		var pwd string
-		pwd, err = users.RandomPwd(set.MinimumPasswordLength)
-		if err != nil {
-			return err
-		}
-
-		log.Printf("User '%s' initialized with randomly generated password: %s\n", username, pwd)
-		password, err = users.ValidateAndHashPwd(pwd, set.MinimumPasswordLength)
+		// Default to the out-of-the-box admin password. We hash it directly
+		// instead of going through ValidateAndHashPwd so it bypasses the
+		// minimum password length requirement (which still applies to
+		// user-created accounts). CHANGE THIS IMMEDIATELY IN PRODUCTION.
+		log.Printf("User '%s' initialized with default password 'admin'. Change it immediately in production!\n", username)
+		password, err = users.HashPwd("admin")
 		if err != nil {
 			return err
 		}

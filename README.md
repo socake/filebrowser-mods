@@ -72,6 +72,33 @@ lumen drop ./report.pdf --server https://files.example.com
 
 ## 部署
 
+### 首次启动 / 默认管理员账号
+
+在没有任何已存在配置或数据库的情况下首次启动时，LumenBrowser 会自动执行 quick setup，创建第一个管理员账号：
+
+| 项目 | 默认值 |
+| --- | --- |
+| 用户名 | `admin` |
+| 密码 | `admin` |
+| 界面语言 | 简体中文（zh-cn） |
+
+打开 Web 界面用 `admin` / `admin` 即可直接登录，开箱即用。
+
+> ⚠️ **安全警告：默认密码 `admin` 仅为开箱即用，切勿在生产环境保留！**
+>
+> 默认 `admin/admin` 凭据是公开已知的。任何把服务暴露到公网而不修改默认密码的部署，等同于将整台服务器的文件读写权限直接交给所有人，存在**严重安全风险**。
+>
+> 部署后请**立即**修改默认密码，二选一：
+>
+> - **Web 界面**：右上角进入 *设置 → 个人设置（Profile Settings）*，修改密码。
+> - **CLI**（需先停止正在运行的服务，避免数据库占用）：
+>
+>   ```bash
+>   filebrowser users update admin --password <新密码> --database ./filebrowser.db
+>   ```
+>
+> 若用自定义凭据初始化，首次启动时通过 `--username` / `--password` 传入即可（`--password` 接收的是已哈希的密码值）。
+
 ### Docker
 
 最简单的方式是用 Docker Compose（仓库根 `compose.yaml`，含可选 Redis 缓存）：
