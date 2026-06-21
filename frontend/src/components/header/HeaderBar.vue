@@ -11,6 +11,15 @@
 
     <slot />
 
+    <Action
+      id="filetree-toggle"
+      class="filetree-toggle"
+      :class="{ active: layoutStore.showFileTree }"
+      icon="account_tree"
+      :label="t('buttons.fileTree')"
+      @action="layoutStore.toggleFileTree()"
+    />
+
     <div
       id="dropdown"
       :class="{ active: layoutStore.currentPromptName === 'more' }"

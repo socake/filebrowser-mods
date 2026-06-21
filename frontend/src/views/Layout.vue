@@ -16,6 +16,7 @@
         "
       />
     </main>
+    <file-tree v-if="authStore.isLoggedIn"></file-tree>
     <prompts></prompts>
     <upload-files></upload-files>
   </div>
@@ -30,8 +31,9 @@ import Sidebar from "@/components/Sidebar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Shell from "@/components/Shell.vue";
 import UploadFiles from "@/components/prompts/UploadFiles.vue";
+import FileTree from "@/components/FileTree.vue";
 import { enableExec } from "@/utils/constants";
-import { computed, watch } from "vue";
+import { computed, watch, watchEffect, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 
 const layoutStore = useLayoutStore();
@@ -50,5 +52,17 @@ watch(route, () => {
   if (layoutStore.currentPromptName !== "success") {
     layoutStore.closeHovers();
   }
+});
+
+// Adjust the content area width when the file-tree panel is open/closed.
+watchEffect(() => {
+  document.body.classList.toggle(
+    "lumen-tree-open",
+    authStore.isLoggedIn && layoutStore.showFileTree
+  );
+});
+
+onUnmounted(() => {
+  document.body.classList.remove("lumen-tree-open");
 });
 </script>

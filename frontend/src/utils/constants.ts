@@ -43,4 +43,5 @@ export {
   origin,
   tusEndpoint,
   hideLoginButton,
+  staticURL,
 };

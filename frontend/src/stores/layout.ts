@@ -8,10 +8,14 @@ export const useLayoutStore = defineStore("layout", {
     loading: boolean;
     prompts: PopupProps[];
     showShell: boolean | null;
+    showFileTree: boolean;
   } => ({
     loading: false,
     prompts: [],
     showShell: false,
+    showFileTree:
+      typeof localStorage !== "undefined" &&
+      localStorage.getItem("lumen-filetree-open") === "true",
   }),
   getters: {
     currentPrompt(state) {
@@ -28,6 +32,15 @@ export const useLayoutStore = defineStore("layout", {
     // no context as first argument, use `this` instead
     toggleShell() {
       this.showShell = !this.showShell;
+    },
+    toggleFileTree() {
+      this.showFileTree = !this.showFileTree;
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem(
+          "lumen-filetree-open",
+          this.showFileTree ? "true" : "false"
+        );
+      }
     },
     setCloseOnPrompt(closeFunction: () => Promise<string>, onPrompt: string) {
       const prompt = this.prompts.find((prompt) => prompt.prompt === onPrompt);

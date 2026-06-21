@@ -27,7 +27,7 @@
         v-if="!readOnly && type === 'image' && isThumbsEnabled"
         v-lazy="thumbnailUrl"
       />
-      <i v-else class="material-icons"></i>
+      <img v-else :src="fileIconUrl" class="lumen-file-icon" :alt="type" />
     </div>
 
     <div>
@@ -48,7 +48,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 
-import { enableThumbs } from "@/utils/constants";
+import { enableThumbs, staticURL } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "dayjs";
 import { files as api } from "@/api";
@@ -116,6 +116,33 @@ const thumbnailUrl = computed(() => {
 
 const isThumbsEnabled = computed(() => {
   return enableThumbs && !authStore.user?.disableThumbnails;
+});
+
+// 扩展名 → 图标名映射（对应 public/img/file-icons/<name>.png）
+const EXT_ICON: Record<string, string> = {
+  pdf: "pdf",
+  doc: "word", docx: "word",
+  xls: "excel", xlsx: "excel",
+  ppt: "powerpoint", pptx: "powerpoint",
+  md: "markdown", markdown: "markdown",
+  txt: "txt", log: "txt",
+  csv: "csv",
+  png: "image", jpg: "image", jpeg: "image", gif: "image", webp: "image", svg: "image", bmp: "image", ico: "image",
+  mp4: "video", mov: "video", avi: "video", mkv: "video", webm: "video",
+  mp3: "audio", wav: "audio", flac: "audio", ogg: "audio", aac: "audio", m4a: "audio",
+  zip: "archive", rar: "archive", "7z": "archive", tar: "archive", gz: "archive", bz2: "archive",
+  js: "code", ts: "code", jsx: "code", tsx: "code", py: "code", go: "code", java: "code",
+  c: "code", cpp: "code", h: "code", rs: "code", rb: "code", php: "code", sh: "code",
+  html: "code", css: "code", vue: "code", yml: "code", yaml: "code",
+  json: "json",
+};
+
+// 文件卡片图标：文件夹用 folder，文件按扩展名映射，兜底 generic
+const fileIconUrl = computed(() => {
+  if (props.isDir) return `${staticURL}/img/file-icons/folder.png`;
+  const lastDot = props.name.lastIndexOf(".");
+  const ext = lastDot > 0 ? props.name.slice(lastDot + 1).toLowerCase() : "";
+  return `${staticURL}/img/file-icons/${EXT_ICON[ext] || "generic"}.png`;
 });
 
 const humanSize = () => {
@@ -405,3 +432,10 @@ const handleTouchMove = (event: TouchEvent) => {
   }
 };
 </script>
+
+<style scoped>
+/* 文件类型图标：完整显示不裁剪（缩略图仍走 cover） */
+.item img.lumen-file-icon {
+  object-fit: contain;
+}
+</style>

@@ -7,7 +7,8 @@
         <span>{{ user.username }}</span>
       </button>
       <button
-        class="action sb-myfiles"
+        class="action"
+        :class="{ 'sb-active': $route.path.startsWith('/files') }"
         @click="toRoot"
         :aria-label="$t('sidebar.myFiles')"
         :title="$t('sidebar.myFiles')"
@@ -41,6 +42,7 @@
       <div v-if="user.perm.admin">
         <button
           class="action"
+          :class="{ 'sb-active': $route.path.startsWith('/settings') }"
           @click="toGlobalSettings"
           :aria-label="$t('sidebar.settings')"
           :title="$t('sidebar.settings')"

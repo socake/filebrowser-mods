@@ -61,15 +61,15 @@ nav .sb-user span {
 }
 
 /* 当前项高亮：我的文件 */
-nav .sb-myfiles {
+nav .sb-active {
   background: #141414 !important;
   color: #fff !important;
   font-weight: 600 !important;
 }
-nav .sb-myfiles .material-icons {
+nav .sb-active .material-icons {
   color: #fff !important;
 }
-nav .sb-myfiles:hover {
+nav .sb-active:hover {
   background: #000 !important;
 }
 
@@ -83,6 +83,28 @@ nav .credits {
   font-size: 0.78em !important;
   color: #9a9a9e !important;
   line-height: 1.6;
+}
+
+/* —— 右侧文件树面板：打开时让内容区收窄，避免被遮挡 —— */
+body.lumen-tree-open main {
+  width: calc(100% - 19em - 320px) !important;
+  margin-right: 320px !important;
+}
+@media (max-width: 900px) {
+  /* 移动端面板浮在内容之上，不改变内容宽度 */
+  body.lumen-tree-open main {
+    width: calc(100% - 19em) !important;
+    margin-right: 1em !important;
+  }
+}
+
+/* 顶栏目录树 toggle 按钮：激活态用近黑高亮，呼应主题 accent */
+header #filetree-toggle.action.active {
+  background: #141414 !important;
+  color: #fff !important;
+}
+header #filetree-toggle.action.active .material-icons {
+  color: #fff !important;
 }
 
 /* 登出项：hover 用警示红 */
