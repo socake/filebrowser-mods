@@ -1,0 +1,23 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- LumenBrowser icon: 圆角方形容器，里面一个发光光点，光从缝隙透出。单色、克制、To C 白底 -->
+  <rect x="2" y="2" width="92" height="92" rx="22" fill="#FFFFFF"/>
+  <rect x="2.75" y="2.75" width="90.5" height="90.5" rx="21.25" stroke="#EAEAEA" stroke-width="1.5"/>
+
+  <!-- 容器（文件箱）描边 -->
+  <rect x="22" y="22" width="52" height="52" rx="14" stroke="#141414" stroke-width="4"/>
+
+  <!-- 中心发光点 -->
+  <circle cx="48" cy="48" r="7" fill="#141414"/>
+
+  <!-- 透出的光芒（缝隙透光） -->
+  <g stroke="#141414" stroke-width="4" stroke-linecap="round">
+    <line x1="48" y1="30" x2="48" y2="36"/>
+    <line x1="48" y1="60" x2="48" y2="66"/>
+    <line x1="30" y1="48" x2="36" y2="48"/>
+    <line x1="60" y1="48" x2="66" y2="48"/>
+    <line x1="35.3" y1="35.3" x2="39.5" y2="39.5"/>
+    <line x1="56.5" y1="56.5" x2="60.7" y2="60.7"/>
+    <line x1="60.7" y1="35.3" x2="56.5" y2="39.5"/>
+    <line x1="39.5" y1="56.5" x2="35.3" y2="60.7"/>
+  </g>
+</svg>

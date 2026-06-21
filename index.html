@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LumenBrowser · 你的文件之光</title>
+<style>
+  :root{
+    --ink:#141414;       /* 主文字 / 强调（唯一“重”色） */
+    --muted:#6b6b6b;     /* 次要文字 */
+    --faint:#9a9a9a;     /* 更弱文字 */
+    --line:#eaeaea;      /* 分隔线 / 边框 */
+    --panel:#fafafa;     /* 浅面板 */
+    --bg:#ffffff;        /* 纯白背景 */
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em;font-size:18px}
+  .brand img{width:30px;height:30px}
+  .nav-links{display:flex;align-items:center;gap:28px;font-size:14px;color:var(--muted)}
+  .nav-links a:hover{color:var(--ink)}
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;font-weight:600;font-size:14px;padding:10px 18px;transition:.15s;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--ink);color:#fff}
+  .btn-primary:hover{transform:translateY(-1px);opacity:.92}
+  .btn-ghost{border-color:var(--line);color:var(--ink);background:#fff}
+  .btn-ghost:hover{border-color:var(--ink)}
+  @media(max-width:720px){.nav-links a:not(.btn){display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{text-align:center;padding:96px 0 64px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 14px;margin-bottom:28px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ink)}
+  h1{font-size:clamp(40px,6vw,68px);line-height:1.05;letter-spacing:-.03em;font-weight:800}
+  h1 .light{position:relative}
+  .lede{max-width:620px;margin:24px auto 0;font-size:18px;color:var(--muted)}
+  .cta{display:flex;gap:14px;justify-content:center;margin-top:36px;flex-wrap:wrap}
+  .meta-row{margin-top:22px;font-size:13px;color:var(--faint);display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+
+  /* ---------- product mock ---------- */
+  .shot{margin:60px auto 0;max-width:960px;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(20,20,20,.18)}
+  .shot-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .tl{display:flex;gap:7px}
+  .tl span{width:11px;height:11px;border-radius:50%;background:#dcdcdc}
+  .url{margin-left:14px;flex:1;background:#fff;border:1px solid var(--line);border-radius:7px;font-size:12px;color:var(--faint);padding:5px 12px;max-width:340px}
+  .app{display:grid;grid-template-columns:210px 1fr;min-height:340px}
+  .side{border-right:1px solid var(--line);padding:18px 14px;background:#fff}
+  .side h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:6px 8px 12px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--muted)}
+  .nav-item.active{background:var(--panel);color:var(--ink);font-weight:600}
+  .nav-item i{width:14px;height:14px;border:1.6px solid currentColor;border-radius:3px;display:inline-block}
+  .main{padding:20px 22px;background:#fff}
+  .crumbs{font-size:13px;color:var(--faint);margin-bottom:16px}
+  .crumbs b{color:var(--ink)}
+  .files{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .file{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+  .thumb{height:54px;border-radius:7px;background:var(--panel);position:relative}
+  .thumb::after{content:"";position:absolute;left:12px;top:14px;width:22px;height:26px;border:1.8px solid #cfcfcf;border-radius:3px}
+  .file small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media(max-width:720px){.app{grid-template-columns:1fr}.side{display:none}.files{grid-template-columns:repeat(2,1fr)}}
+
+  /* ---------- features ---------- */
+  section{padding:80px 0;border-top:1px solid var(--line)}
+  .sec-head{max-width:640px;margin-bottom:48px}
+  .sec-head .tag{font-size:13px;color:var(--faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .sec-head h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.02em;margin-top:10px;font-weight:800}
+  .sec-head p{color:var(--muted);margin-top:14px;font-size:17px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:var(--radius);padding:26px;background:#fff;transition:.18s}
+  .card:hover{border-color:#d4d4d4;transform:translateY(-2px)}
+  .ic{width:42px;height:42px;border:1.6px solid var(--ink);border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+  .ic span{width:14px;height:14px;border:2px solid var(--ink);border-radius:4px}
+  .card h3{font-size:17px;letter-spacing:-.01em}
+  .card p{color:var(--muted);font-size:14.5px;margin-top:8px}
+
+  /* ---------- deploy ---------- */
+  .deploy{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+  @media(max-width:760px){.deploy{grid-template-columns:1fr}}
+  .code{background:var(--ink);color:#f4f4f4;border-radius:14px;padding:24px;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.9;overflow:auto}
+  .code .c{color:#8d8d8d}
+  .code .p{color:#bdbdbd}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:48px 0;color:var(--faint);font-size:13.5px}
+  .foot-inner{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .foot-inner a:hover{color:var(--ink)}
+  .credit{max-width:520px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="brand"><img src="assets/icon.svg" alt="LumenBrowser"> LumenBrowser</div>
+    <div class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#why">为什么自托管</a>
+      <a href="#deploy">部署</a>
+      <a class="btn btn-primary" href="#deploy">开始使用</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <div class="eyebrow"><span class="dot"></span> 基于 filebrowser · 自托管 · 单二进制</div>
+  <h1>你的文件，<span class="light">之光</span>。</h1>
+  <p class="lede">LumenBrowser 把一台服务器变成干净的私有文件库 —— 在线浏览、对外文档门户、免登录投递箱，数据始终归你掌控。</p>
+  <div class="cta">
+    <a class="btn btn-primary" href="#deploy">一键部署 →</a>
+    <a class="btn btn-ghost" href="#features">看看能做什么</a>
+  </div>
+  <div class="meta-row"><span>· 单二进制，零依赖</span><span>· Docker 一行启动</span><span>· 你的数据不出你的服务器</span></div>
+
+  <!-- 产品界面 mock -->
+  <div class="shot">
+    <div class="shot-bar">
+      <div class="tl"><span></span><span></span><span></span></div>
+      <div class="url">https://files.yourdomain.com</div>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <h4>资源库</h4>
+        <div class="nav-item active"><i></i> 我的文件</div>
+        <div class="nav-item"><i></i> 公开文档门户</div>
+        <div class="nav-item"><i></i> 分享链接</div>
+        <div class="nav-item"><i></i> 投递箱</div>
+        <div class="nav-item"><i></i> 设置</div>
+      </aside>
+      <div class="main">
+        <div class="crumbs">root / <b>documents</b></div>
+        <div class="files">
+          <div class="file"><div class="thumb"></div><small>季度报告.md</small></div>
+          <div class="file"><div class="thumb"></div><small>架构图.drawio</small></div>
+          <div class="file"><div class="thumb"></div><small>合同.pdf</small></div>
+          <div class="file"><div class="thumb"></div><small>README</small></div>
+          <div class="file"><div class="thumb"></div><small>设计稿.png</small></div>
+          <div class="file"><div class="thumb"></div><small>data.csv</small></div>
+          <div class="file"><div class="thumb"></div><small>notes.txt</small></div>
+          <div class="file"><div class="thumb"></div><small>backup.zip</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag">Features</div>
+      <h2>不止是文件管理器</h2>
+      <p>在经典 filebrowser 之上，补齐了对外分享与文档协作的关键一环。</p>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="ic"><span></span></div><h3>公开文档门户 /docs</h3><p>无需登录的只读门户：左侧目录树、右侧预览，支持 Markdown、代码高亮与 drawio 图，把目录直接当在线文档库对外发布。</p></div>
+      <div class="card"><div class="ic"><span></span></div><h3>免登录投递箱</h3><p>任何人 POST 一个文件即可拿到永久分享链接，文件自动归档、加时间戳防冲突。适合收集作业、外部投稿。</p></div>
+      <div class="card"><div class="ic"><span></span></div><h3>增强分享页</h3><p>分享链接支持 Markdown / 文本在线预览与语法高亮，密码分享流程更顺，不再只能盲下载。</p></div>
+      <div class="card"><div class="ic"><span></span></div><h3>Markdown 优先</h3><p>内置一套完整 Markdown 渲染样式与可预览编辑器，写文档、记笔记、发布说明，所见即所得。</p></div>
+      <div class="card"><div class="ic"><span></span></div><h3>更稳的安全底线</h3><p>分享 hash 熵提升到 24 字节，极难被遍历猜测；文档门户自动过滤 .env / 密钥 / 凭据类敏感文件。</p></div>
+      <div class="card"><div class="ic"><span></span></div><h3>自托管 · 单二进制</h3><p>一个可执行文件加一个数据库即可运行，前端已内嵌。指向一个目录，立刻拥有自己的私有云。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="tag">Why self-host</div>
+      <h2>数据归你，不归平台</h2>
+      <p>不依赖第三方网盘、没有容量套餐、没有隐私让渡。装在你自己的服务器或内网，文件从头到尾在你掌控之中。</p>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>零订阅</h3><p>开源、自托管，容量只取决于你自己的磁盘。</p></div>
+      <div class="card"><h3>内网友好</h3><p>可纯内网部署，敏感资料不出局域网。</p></div>
+      <div class="card"><h3>可定制</h3><p>开源代码，门户、分享、品牌都能按需改造。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="deploy">
+  <div class="wrap deploy">
+    <div>
+      <div class="sec-head" style="margin-bottom:24px">
+        <div class="tag">Deploy</div>
+        <h2>一行命令，跑起来</h2>
+        <p>Docker 拉起，指向要暴露的目录即可。几秒钟后访问浏览器界面。</p>
+      </div>
+      <a class="btn btn-primary" href="#">查看部署文档 →</a>
+    </div>
+    <div class="code">
+<span class="c"># 用 Docker 启动 LumenBrowser</span><br>
+docker run -d <span class="p">\</span><br>
+&nbsp;&nbsp;-p 8080:80 <span class="p">\</span><br>
+&nbsp;&nbsp;-v /srv/files:/srv <span class="p">\</span><br>
+&nbsp;&nbsp;-v ./database.db:/database.db <span class="p">\</span><br>
+&nbsp;&nbsp;lumenbrowser/lumenbrowser<br>
+<br>
+<span class="c"># 浏览器打开</span><br>
+<span class="p">→</span> http://localhost:8080
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="brand" style="font-size:16px"><img src="assets/icon.svg" style="width:24px;height:24px" alt=""> LumenBrowser</div>
+    <div class="credit">
+      LumenBrowser 基于开源项目 <a href="https://github.com/filebrowser/filebrowser" style="text-decoration:underline">filebrowser</a> 构建，遵循 Apache License 2.0。
+      “你的文件之光 / Bring your files to light”。<br>
+      © 2026 LumenBrowser · 自托管的文件与文档门户
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

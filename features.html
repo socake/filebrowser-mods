@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LumenBrowser · 功能总览</title>
+<style>
+  :root{
+    --ink:#141414;--muted:#6b6b6b;--faint:#9a9a9a;--line:#eaeaea;
+    --panel:#fafafa;--bg:#ffffff;--radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em;font-size:18px}
+  .brand img{width:30px;height:30px}
+  .back{font-size:14px;color:var(--muted)}
+  .back:hover{color:var(--ink)}
+
+  /* header */
+  .head{padding:64px 0 32px}
+  .head .tag{font-size:13px;color:var(--faint);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .head h1{font-size:clamp(32px,5vw,46px);letter-spacing:-.03em;font-weight:800;margin-top:10px}
+  .head p{color:var(--muted);font-size:17px;margin-top:14px;max-width:620px}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);position:sticky;top:64px;background:var(--bg);z-index:10;padding-top:8px}
+  .tab{padding:12px 16px;font-size:14.5px;font-weight:600;color:var(--faint);border-bottom:2px solid transparent;cursor:pointer;transition:.15s;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab.active{color:var(--ink);border-bottom-color:var(--ink)}
+  .tab .count{font-size:11px;color:var(--faint);font-weight:500;margin-left:5px}
+
+  /* panels */
+  .panel{display:none;padding:36px 0 80px}
+  .panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .panel-intro{color:var(--muted);font-size:15px;margin-bottom:28px;max-width:680px}
+
+  /* feature rows */
+  .rows{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.rows{grid-template-columns:1fr}}
+  .row{border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;transition:.15s}
+  .row:hover{border-color:#d4d4d4;transform:translateY(-2px)}
+  .row-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .row h3{font-size:16px;letter-spacing:-.01em}
+  .row p{color:var(--muted);font-size:14px}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:999px;border:1px solid var(--ink);color:var(--ink)}
+  .badge.soft{border-color:var(--line);color:var(--faint)}
+  .api{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--faint);margin-top:8px}
+
+  /* table (CLI) */
+  table{width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  thead{background:var(--panel)}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);font-weight:700;padding:13px 16px}
+  td{padding:14px 16px;border-top:1px solid var(--line);vertical-align:top;color:var(--muted)}
+  td.cmd{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--ink);white-space:nowrap}
+  td.act{color:var(--ink)}
+  td.api{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:var(--faint);white-space:nowrap}
+  .cli-note{margin-top:22px;border:1px dashed var(--line);border-radius:var(--radius);padding:18px 20px;font-size:13.5px;color:var(--muted)}
+  .cli-note b{color:var(--ink)}
+  @media(max-width:680px){.api,td.api{display:none}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="brand"><img src="assets/icon.svg" alt=""> LumenBrowser</div>
+    <a class="back" href="index.html">← 返回首页</a>
+  </div>
+</nav>
+
+<header class="head wrap">
+  <div class="tag">Capabilities</div>
+  <h1>功能总览</h1>
+  <p>基于 filebrowser 二次开发。下面按模块分类列出全部能力，<b style="color:var(--ink)">「新增」</b>标记的是本分支相对原版的差异化功能。</p>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab active" data-tab="files">文件管理<span class="count">6</span></div>
+    <div class="tab" data-tab="users">用户与权限<span class="count">5</span></div>
+    <div class="tab" data-tab="share">分享<span class="count">4</span></div>
+    <div class="tab" data-tab="portal">对外协作<span class="count">4</span></div>
+    <div class="tab" data-tab="cli">CLI 客户端<span class="count">规划</span></div>
+    <div class="tab" data-tab="ops">部署与运维<span class="count">4</span></div>
+  </div>
+
+  <!-- 文件管理 -->
+  <div class="panel active" data-panel="files">
+    <p class="panel-intro">经典 filebrowser 的核心：把服务器上一个目录变成可在浏览器操作的私有云。</p>
+    <div class="rows">
+      <div class="row"><div class="row-top"><h3>浏览与基础操作</h3></div><p>上传、下载、删除、重命名、移动、复制，完整文件树操作。</p><div class="api">/api/resources · GET POST PUT PATCH DELETE</div></div>
+      <div class="row"><div class="row-top"><h3>大文件断点续传</h3></div><p>基于 tus 协议分块上传，断网可续传，适合大文件与弱网。</p><div class="api">/api/tus</div></div>
+      <div class="row"><div class="row-top"><h3>在线预览</h3></div><p>图片缩略图、视频、字幕、文本与代码语法高亮，无需下载即可查看。</p><div class="api">/api/preview · /api/raw · /api/subtitle</div></div>
+      <div class="row"><div class="row-top"><h3>在线编辑</h3></div><p>直接在网页里编辑文本与代码文件并保存。</p></div>
+      <div class="row"><div class="row-top"><h3>文件搜索</h3></div><p>按文件名/路径检索，快速定位。</p><div class="api">/api/search</div></div>
+      <div class="row"><div class="row-top"><h3>磁盘用量</h3></div><p>查看挂载目录的容量占用统计。</p><div class="api">/api/usage</div></div>
+    </div>
+  </div>
+
+  <!-- 用户与权限 -->
+  <div class="panel" data-panel="users">
+    <p class="panel-intro">多用户隔离与细粒度访问控制，适合团队共享同一实例。</p>
+    <div class="rows">
+      <div class="row"><div class="row-top"><h3>多用户与登录</h3></div><p>注册、登录、JWT 鉴权与 token 续期。</p><div class="api">/api/login · /api/signup · /api/renew</div></div>
+      <div class="row"><div class="row-top"><h3>用户作用域 scope</h3></div><p>为每个用户限定可见的根目录，互相隔离。</p><div class="api">/api/users</div></div>
+      <div class="row"><div class="row-top"><h3>访问规则 rules</h3></div><p>按路径配置 allow/deny 规则，精确控制可访问范围。</p></div>
+      <div class="row"><div class="row-top"><h3>命令执行（可选）</h3></div><p>可配置允许在指定目录执行的 shell 命令（command runner）。</p><div class="api">/api/command</div></div>
+      <div class="row"><div class="row-top"><h3>服务端管理 CLI</h3></div><p>用户/配置/规则的本地管理命令，直连数据库运维。</p><div class="api">filebrowser users / config / rules …</div></div>
+    </div>
+  </div>
+
+  <!-- 分享 -->
+  <div class="panel" data-panel="share">
+    <p class="panel-intro">把文件或目录生成对外链接，可控、可追溯。</p>
+    <div class="rows">
+      <div class="row"><div class="row-top"><h3>分享链接</h3></div><p>为任意文件/目录生成分享链接并管理。</p><div class="api">/api/share · /api/shares</div></div>
+      <div class="row"><div class="row-top"><h3>密码与过期</h3></div><p>分享可设访问密码、可设过期时间。</p></div>
+      <div class="row"><div class="row-top"><h3>分享 hash 安全加固 <span class="badge">新增</span></h3></div><p>分享 hash 熵从 6 字节提升到 24 字节，极难被遍历猜测。</p><div class="api">http/share.go</div></div>
+      <div class="row"><div class="row-top"><h3>增强分享页 <span class="badge">新增</span></h3></div><p>分享链接支持 Markdown / 文本在线预览与语法高亮，不再只能盲下载。</p><div class="api">Share.vue · http/public.go</div></div>
+    </div>
+  </div>
+
+  <!-- 对外协作 -->
+  <div class="panel" data-panel="portal">
+    <p class="panel-intro">本分支的核心差异化：在私有文件管理之上，叠加了一层对外的文档与投递能力。</p>
+    <div class="rows">
+      <div class="row"><div class="row-top"><h3>公开文档门户 /docs <span class="badge">新增</span></h3></div><p>免登录只读门户：目录树 + 内容预览，支持 Markdown、代码高亮、drawio 图，把目录当在线文档库对外发布。</p><div class="api">/docs · /docs/list · /docs/content</div></div>
+      <div class="row"><div class="row-top"><h3>免登录投递箱 <span class="badge">新增</span></h3></div><p>任何人 POST 一个文件即得永久分享链接，自动归档加时间戳，适合收集投稿/作业。</p><div class="api">POST /api/public/upload</div></div>
+      <div class="row"><div class="row-top"><h3>Markdown 优先 <span class="badge">新增</span></h3></div><p>内置完整 Markdown 渲染样式与可预览编辑器，写文档所见即所得。</p><div class="api">mdPreview.css · Editor.vue</div></div>
+      <div class="row"><div class="row-top"><h3>敏感文件过滤 <span class="badge">新增</span></h3></div><p>门户列表/预览自动跳过 .env、密钥、凭据类敏感文件。</p></div>
+    </div>
+  </div>
+
+  <!-- CLI 客户端 -->
+  <div class="panel" data-panel="cli">
+    <p class="panel-intro">规划中的命令行客户端，把现有 REST API 封装成终端命令——服务端无需改动。支持脚本化、CI 集成、批量上传与定时备份。</p>
+    <table>
+      <thead><tr><th>命令</th><th>作用</th><th>背后 API</th></tr></thead>
+      <tbody>
+        <tr><td class="cmd">lumen login &lt;url&gt;</td><td class="act">登录并保存连接配置（profile）</td><td class="api">POST /api/login</td></tr>
+        <tr><td class="cmd">lumen ls &lt;远程路径&gt;</td><td class="act">列出远程目录</td><td class="api">GET /api/resources</td></tr>
+        <tr><td class="cmd">lumen put &lt;本地&gt; &lt;远程&gt;</td><td class="act">上传文件（大文件断点续传）</td><td class="api">/api/tus</td></tr>
+        <tr><td class="cmd">lumen get &lt;远程&gt; &lt;本地&gt;</td><td class="act">下载文件</td><td class="api">GET /api/raw</td></tr>
+        <tr><td class="cmd">lumen rm / mv / mkdir</td><td class="act">删除 / 移动重命名 / 新建目录</td><td class="api">DELETE PATCH POST /api/resources</td></tr>
+        <tr><td class="cmd">lumen share &lt;远程&gt;</td><td class="act">生成分享链接（--password / --expires）</td><td class="api">POST /api/share</td></tr>
+        <tr><td class="cmd">lumen shares</td><td class="act">列出我的所有分享</td><td class="api">GET /api/shares</td></tr>
+        <tr><td class="cmd">lumen search &lt;关键词&gt;</td><td class="act">搜索文件</td><td class="api">GET /api/search</td></tr>
+        <tr><td class="cmd">lumen drop &lt;文件&gt;</td><td class="act">免登录投递，上传即得永久链</td><td class="api">POST /api/public/upload</td></tr>
+      </tbody>
+    </table>
+    <div class="cli-note"><b>技术路线：</b>单独的 Go 二进制（与产品「单二进制」调性一致，跨平台分发），纯调 REST，复用仓库内 share/files 包的结构体。<b>最小验证</b>建议先做 login + ls + drop 跑通链路。</div>
+  </div>
+
+  <!-- 部署运维 -->
+  <div class="panel" data-panel="ops">
+    <p class="panel-intro">面向自托管，分发与运维都尽量简单。</p>
+    <div class="rows">
+      <div class="row"><div class="row-top"><h3>单二进制</h3></div><p>前端已内嵌，一个可执行文件 + 一个数据库即可运行。</p></div>
+      <div class="row"><div class="row-top"><h3>Docker 部署</h3></div><p>官方镜像，一行命令拉起，挂载目录即用。</p><div class="api">compose.yaml · Dockerfile</div></div>
+      <div class="row"><div class="row-top"><h3>配置导入导出</h3></div><p>配置可 export/import，便于迁移与版本化。</p><div class="api">filebrowser config import/export</div></div>
+      <div class="row"><div class="row-top"><h3>品牌自定义</h3></div><p>可替换名称、Logo 与样式，做成自己的产品。</p><div class="api">branding/</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const tabs=document.querySelectorAll('.tab');
+  const panels=document.querySelectorAll('.panel');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelector('.panel[data-panel="'+t.dataset.tab+'"]').classList.add('active');
+    window.scrollTo({top:0,behavior:'instant'});
+  }));
+</script>
+</body>
+</html>
