@@ -11,8 +11,9 @@ import (
 // runMkdir 新建远程目录。背后接口：POST /api/resources/<path>/（结尾斜杠表示目录）。
 func runMkdir(args []string) error {
 	fs := flag.NewFlagSet("mkdir", flag.ExitOnError)
+	profile := fs.String("profile", "", "指定使用的 profile（缺省用当前）")
 	fs.Usage = func() {
-		fmt.Println("用法: lumen mkdir <远程目录>")
+		fmt.Println("用法: lumen mkdir [--profile 名] <远程目录>")
 		fs.PrintDefaults()
 	}
 	fs.Parse(args)
@@ -23,7 +24,7 @@ func runMkdir(args []string) error {
 		return fmt.Errorf("缺少远程目录")
 	}
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(*profile)
 	if err != nil {
 		return err
 	}

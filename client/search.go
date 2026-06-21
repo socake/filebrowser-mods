@@ -15,8 +15,9 @@ import (
 func runSearch(args []string) error {
 	fs := flag.NewFlagSet("search", flag.ExitOnError)
 	root := fs.String("in", "/", "搜索根目录")
+	profile := fs.String("profile", "", "指定使用的 profile（缺省用当前）")
 	fs.Usage = func() {
-		fmt.Println("用法: lumen search [-in 目录] <关键词>")
+		fmt.Println("用法: lumen search [--profile 名] [-in 目录] <关键词>")
 		fs.PrintDefaults()
 	}
 	fs.Parse(args)
@@ -27,7 +28,7 @@ func runSearch(args []string) error {
 		return fmt.Errorf("缺少关键词")
 	}
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(*profile)
 	if err != nil {
 		return err
 	}

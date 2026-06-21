@@ -18,9 +18,10 @@ func runLogin(args []string) error {
 	var (
 		username = fs.String("u", "", "用户名")
 		password = fs.String("p", "", "密码（留空则提示输入）")
+		profile  = fs.String("profile", config.DefaultProfile, "保存到的 profile 名（并设为当前）")
 	)
 	fs.Usage = func() {
-		fmt.Fprintln(os.Stderr, "用法: lumen login <服务器地址> [-u 用户名] [-p 密码]")
+		fmt.Fprintln(os.Stderr, "用法: lumen login <服务器地址> [-u 用户名] [-p 密码] [--profile 名]")
 		fs.PrintDefaults()
 	}
 	fs.Parse(args)
@@ -52,10 +53,10 @@ func runLogin(args []string) error {
 		Username: user,
 		Token:    token,
 	}
-	if err := cfg.Save(); err != nil {
+	if err := config.SaveProfile(*profile, cfg); err != nil {
 		return err
 	}
-	fmt.Printf("已登录 %s，配置已保存到 ~/.lumen/config.json\n", cfg.Server)
+	fmt.Printf("已登录 %s，profile %q 已保存并设为当前 (~/.lumen/config.json)\n", cfg.Server, *profile)
 	return nil
 }
 

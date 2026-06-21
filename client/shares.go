@@ -14,9 +14,10 @@ import (
 // runShares 列出我的分享。背后接口：GET /api/shares。
 func runShares(args []string) error {
 	fs := flag.NewFlagSet("shares", flag.ExitOnError)
+	profile := fs.String("profile", "", "指定使用的 profile（缺省用当前）")
 	fs.Parse(args)
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(*profile)
 	if err != nil {
 		return err
 	}

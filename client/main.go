@@ -16,9 +16,10 @@ const usage = `lumen — LumenBrowser CLI
 
 命令:
   login    登录服务器并保存连接配置 (~/.lumen/config.json)
+  profile  列出/切换命名连接 profile
   ls       列出远程目录
-  put      上传本地文件到远程
-  get      下载远程文件到本地
+  put      上传本地文件到远程（大文件走 tus 断点续传，带进度）
+  get      下载远程文件到本地（带进度）
   rm       删除远程文件或目录
   mv       重命名/移动远程文件
   mkdir    新建远程目录
@@ -26,6 +27,9 @@ const usage = `lumen — LumenBrowser CLI
   shares   列出我的分享
   search   在远程目录下搜索文件
   drop     免登录投递文件，上传即得永久分享链接
+
+多 profile: login --profile <名> 保存多套连接，profile use <名> 切换，
+其他命令可加 --profile <名> 临时指定。
 
 用 "lumen <command> -h" 查看子命令帮助。
 `
@@ -42,6 +46,8 @@ func main() {
 	switch cmd {
 	case "login":
 		err = runLogin(args)
+	case "profile":
+		err = runProfile(args)
 	case "ls":
 		err = runLs(args)
 	case "put":

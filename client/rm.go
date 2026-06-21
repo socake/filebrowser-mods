@@ -11,8 +11,9 @@ import (
 // runRm 删除远程文件或目录。背后接口：DELETE /api/resources/<path>。
 func runRm(args []string) error {
 	fs := flag.NewFlagSet("rm", flag.ExitOnError)
+	profile := fs.String("profile", "", "指定使用的 profile（缺省用当前）")
 	fs.Usage = func() {
-		fmt.Println("用法: lumen rm <远程路径>")
+		fmt.Println("用法: lumen rm [--profile 名] <远程路径>")
 		fs.PrintDefaults()
 	}
 	fs.Parse(args)
@@ -23,7 +24,7 @@ func runRm(args []string) error {
 		return fmt.Errorf("缺少远程路径")
 	}
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(*profile)
 	if err != nil {
 		return err
 	}

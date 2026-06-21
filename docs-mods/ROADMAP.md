@@ -7,23 +7,30 @@
 
 ## 🔴 必修（安全，上公网前务必处理）
 
-1. **`/docs/download` 绕过敏感文件过滤**
-   `docsDownloadHandler`（`http/docs.go`）没有调用 `hiddenOrSensitive`，
+1. ✅ **已修复：`/docs/download` 绕过敏感文件过滤**
+   原 `docsDownloadHandler`（`http/docs.go`）没有调用 `hiddenOrSensitive`，
    导致虽然 list/preview 看不到 `.env`、`id_rsa`、`credentials` 等文件，
    但只要知道路径就能直接 `GET /docs/download?path=/.env` 下载。
-   → 修法：download 前加同样的 `hiddenOrSensitive(filepath.Base(reqPath))` 检查。
+   现已在 download 前加上 `hiddenOrSensitive(filepath.Base(reqPath))` 检查，命中返回 403。
+   实测：`/docs/download?path=/secrets.txt` 与 `/.env` 均返回 403，普通文件 `readme.txt` 正常 200 下载。
 
-2. **路径越界判断的 sibling-prefix bug**
-   `strings.HasPrefix(realPath, realRoot)` 会把 `/home/ubuntu-secret` 误判为在 `/home/ubuntu` 内。
-   → 修法：比较 `realPath == realRoot || strings.HasPrefix(realPath, realRoot + string(os.PathSeparator))`。
-   三个 handler（list/content/download）都要改。
+2. ✅ **已修复：路径越界判断的 sibling-prefix bug**
+   原 `strings.HasPrefix(realPath, realRoot)` 会把 `/home/ubuntu-secret` 误判为在 `/home/ubuntu` 内。
+   现抽出 `pathWithinRoot(realPath, realRoot)` 助手：`realPath == realRoot ||
+   strings.HasPrefix(realPath, realRoot + string(os.PathSeparator))`，
+   三个 handler（list/content/download）已全部改用。
 
-3. **公开上传是无鉴权开放投递箱**
-   `POST /api/public/upload` 无 auth、无限速、无类型校验，单文件 1GB，且生成**永久**分享。
-   任何人可填满磁盘、上传恶意文件、刷爆分享表。
-   → 选项：加上传 token / 一次性凭证、限速、单 IP 配额、文件类型白名单、分享默认带过期。
-   - ✅ **已修复（子项）：投递箱分享 hash 熵不足**——原 `make([]byte, 6)`（约 8 字符）熵偏低、易被遍历，
-     现已改为 `make([]byte, 24)`，与 `http/share.go` 对齐。无鉴权 / 无限速 / 永久分享等其余缺口仍待处理。
+3. **公开上传是无鉴权开放投递箱**（部分修复）
+   `POST /api/public/upload` 原本无 auth、无限速、无类型校验，单文件 1GB，且生成**永久**分享。
+   - ✅ **已修复：投递箱分享 hash 熵不足**——原 `make([]byte, 6)`（约 8 字符）熵偏低、易被遍历，
+     现已改为 `make([]byte, 24)`，与 `http/share.go` 对齐。
+   - ✅ **已修复：无限速**——加了进程内固定窗口限速（map+mutex），默认每个来源 IP 每分钟 10 次，
+     超限返回 429（参数 `publicUploadRateLimit=10` / `publicUploadWindow=1min`，见 `http/public_upload.go`）。
+     保留"免登录投递"卖点，默认仍无需登录。
+   - ✅ **已修复：可选鉴权开关**——支持环境变量 `FB_PUBLIC_UPLOAD_TOKEN`：设置后要求请求带该口令
+     （`X-Upload-Token` 头 / `Authorization: Bearer <token>` / `?token=` 查询参数任一），
+     校验用常量时间比较，缺失或错误返回 401；不设置则维持免登录。
+   - ⬜ **仍待处理**：文件类型白名单、单 IP 磁盘配额、分享默认带过期（`Expire:0` 永久，见第 6 点）。
 
 4. **CSP 引入 `unsafe-eval` + 外链 CDN**
    为了 diagrams.net viewer 放开了 `unsafe-eval`，并信任 cdnjs / viewer.diagrams.net。

@@ -15,16 +15,17 @@ import (
 func runDrop(args []string) error {
 	fs := flag.NewFlagSet("drop", flag.ExitOnError)
 	server := fs.String("server", "", "服务器地址（未登录时必填）")
+	profile := fs.String("profile", "", "从指定 profile 取服务器地址（缺省用当前）")
 	fs.Parse(args)
 
 	file := fs.Arg(0)
 	if file == "" {
-		return fmt.Errorf("用法: lumen drop [-server 地址] <文件路径>")
+		return fmt.Errorf("用法: lumen drop [-server 地址] [--profile 名] <文件路径>")
 	}
 
 	target := *server
 	if target == "" {
-		if cfg, err := config.Load(); err == nil {
+		if cfg, err := config.Load(*profile); err == nil {
 			target = cfg.Server
 		}
 	}

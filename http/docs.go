@@ -26,6 +26,16 @@ type docsListResponse struct {
 	Entries []docsFileEntry `json:"entries"`
 }
 
+// pathWithinRoot reports whether realPath is equal to realRoot or sits inside
+// it. It avoids the sibling-prefix bug of a plain strings.HasPrefix check
+// (e.g. "/data-secret" must NOT be considered inside "/data").
+func pathWithinRoot(realPath, realRoot string) bool {
+	if realPath == realRoot {
+		return true
+	}
+	return strings.HasPrefix(realPath, realRoot+string(os.PathSeparator))
+}
+
 // hiddenOrSensitive returns true for files that should not be exposed.
 func hiddenOrSensitive(name string) bool {
 	lower := strings.ToLower(name)
@@ -66,7 +76,7 @@ var docsListHandler handleFunc = func(w http.ResponseWriter, r *http.Request, d 
 	realRoot := d.server.Root
 	realPath := filepath.Join(realRoot, reqPath)
 	realPath, err = filepath.Abs(realPath)
-	if err != nil || !strings.HasPrefix(realPath, realRoot) {
+	if err != nil || !pathWithinRoot(realPath, realRoot) {
 		return http.StatusForbidden, fmt.Errorf("access denied")
 	}
 
@@ -141,7 +151,7 @@ var docsContentHandler handleFunc = func(w http.ResponseWriter, r *http.Request,
 	realRoot := d.server.Root
 	realPath := filepath.Join(realRoot, reqPath)
 	realPath, err = filepath.Abs(realPath)
-	if err != nil || !strings.HasPrefix(realPath, realRoot) {
+	if err != nil || !pathWithinRoot(realPath, realRoot) {
 		return http.StatusForbidden, fmt.Errorf("access denied")
 	}
 
@@ -191,7 +201,11 @@ var docsDownloadHandler handleFunc = func(w http.ResponseWriter, r *http.Request
 	realRoot := d.server.Root
 	realPath := filepath.Join(realRoot, reqPath)
 	realPath, err = filepath.Abs(realPath)
-	if err != nil || !strings.HasPrefix(realPath, realRoot) {
+	if err != nil || !pathWithinRoot(realPath, realRoot) {
+		return http.StatusForbidden, fmt.Errorf("access denied")
+	}
+
+	if hiddenOrSensitive(filepath.Base(reqPath)) {
 		return http.StatusForbidden, fmt.Errorf("access denied")
 	}
 

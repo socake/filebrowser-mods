@@ -8,15 +8,17 @@ import (
 
 	"github.com/socake/filebrowser-mods/client/internal/api"
 	"github.com/socake/filebrowser-mods/client/internal/config"
+	"github.com/socake/filebrowser-mods/client/internal/progress"
 )
 
-// runGet 下载远程文件到本地。背后接口：GET /api/raw/<path>。
+// runGet 下载远程文件到本地。背后接口：GET /api/raw/<path>，传输时显示进度。
 //
 // 本地参数省略或以 / 结尾时，用远程文件名落地到该目录。
 func runGet(args []string) error {
 	fs := flag.NewFlagSet("get", flag.ExitOnError)
+	profile := fs.String("profile", "", "指定使用的 profile（缺省用当前）")
 	fs.Usage = func() {
-		fmt.Println("用法: lumen get <远程路径> [本地路径]")
+		fmt.Println("用法: lumen get [--profile 名] <远程路径> [本地路径]")
 		fs.PrintDefaults()
 	}
 	fs.Parse(args)
@@ -32,11 +34,12 @@ func runGet(args []string) error {
 		local = filepath.Join(local, path.Base(remote))
 	}
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(*profile)
 	if err != nil {
 		return err
 	}
-	n, err := api.New(cfg.Server, cfg.Token).Get(remote, local)
+	bar := progress.New("下载 " + path.Base(remote))
+	n, err := api.New(cfg.Server, cfg.Token).Get(remote, local, bar)
 	if err != nil {
 		return err
 	}

@@ -13,6 +13,7 @@ import (
 // runLs 列出远程目录。背后接口：GET /api/resources/<path>。
 func runLs(args []string) error {
 	fs := flag.NewFlagSet("ls", flag.ExitOnError)
+	profile := fs.String("profile", "", "指定使用的 profile（缺省用当前）")
 	fs.Parse(args)
 
 	path := fs.Arg(0)
@@ -20,7 +21,7 @@ func runLs(args []string) error {
 		path = "/"
 	}
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(*profile)
 	if err != nil {
 		return err
 	}

@@ -13,9 +13,36 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/socake/filebrowser-mods/client/internal/progress"
 )
+
+// tus 分块上传参数。
+const (
+	// tusChunkSize 是每个 PATCH 块的大小。
+	tusChunkSize = int64(8 << 20) // 8 MiB
+	// tusThreshold 是启用 tus 断点续传的文件大小阈值；小于它直接整文件 PUT。
+	tusThreshold = int64(8 << 20) // 8 MiB
+	// tusVersion 是握手时声明的 tus 协议版本（服务端目前不校验，带上以示规范）。
+	tusVersion = "1.0.0"
+)
+
+// countingReader 包装 io.Reader，每读到字节就回调进度（用于流式上传/下载计数）。
+type countingReader struct {
+	r  io.Reader
+	cb func(int64)
+}
+
+func (cr *countingReader) Read(p []byte) (int, error) {
+	n, err := cr.r.Read(p)
+	if n > 0 && cr.cb != nil {
+		cr.cb(int64(n))
+	}
+	return n, err
+}
 
 // Client 是带 token 的已登录客户端。
 type Client struct {
@@ -166,11 +193,14 @@ func PublicUpload(server, filePath string) (*UploadResult, error) {
 	return &ur, nil
 }
 
-// Put 上传本地文件到远程路径。背后接口：POST /api/resources/<path>?override=true，
-// 请求体即文件原始字节。第一版把文件流直接交给 http.Client（不读入内存）。
+// Put 上传本地文件到远程路径。
 //
-// remote 末尾不应带斜杠（那是建目录语义）；override=true 表示已存在则覆盖。
-func (c *Client) Put(remote, local string) error {
+// 大文件（≥ tusThreshold）走 tus 断点续传：POST 创建 + 分块 PATCH，中断后重跑会
+// 通过 HEAD 查已传 offset 自动续上。小文件回退到整文件直传
+// （POST /api/resources?override=true，请求体即原始字节）。
+//
+// bar 为可选进度条（nil 表示不显示）。remote 末尾不应带斜杠（那是建目录语义）。
+func (c *Client) Put(remote, local string, bar *progress.Bar) error {
 	if !strings.HasPrefix(remote, "/") {
 		remote = "/" + remote
 	}
@@ -183,14 +213,143 @@ func (c *Client) Put(remote, local string) error {
 	if err != nil {
 		return err
 	}
+	size := info.Size()
 
+	if size >= tusThreshold {
+		return c.putTus(remote, f, size, bar)
+	}
+	return c.putDirect(remote, f, size, bar)
+}
+
+// putDirect 整文件直传，作为小文件路径与 tus 的回退。
+func (c *Client) putDirect(remote string, f *os.File, size int64, bar *progress.Bar) error {
+	bar.Start(size)
 	u := c.Server + "/api/resources" + encodePath(remote) + "?override=true"
-	req, err := http.NewRequest(http.MethodPost, u, f)
+	body := io.Reader(f)
+	if bar != nil {
+		body = &countingReader{r: f, cb: bar.Add}
+	}
+	req, err := http.NewRequest(http.MethodPost, u, body)
 	if err != nil {
 		return err
 	}
-	req.ContentLength = info.Size()
+	req.ContentLength = size
 	req.Header.Set("Content-Type", "application/octet-stream")
+	resp, err := c.do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	rb, _ := io.ReadAll(resp.Body)
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusCreated:
+		bar.Done()
+		return nil
+	case http.StatusUnauthorized:
+		return errUnauthorized
+	default:
+		return fmt.Errorf("上传失败 (HTTP %d): %s", resp.StatusCode, strings.TrimSpace(string(rb)))
+	}
+}
+
+// putTus 用 tus 协议分块上传，支持断点续传。
+//
+// 握手（服务端 http/tus_handlers.go）：
+//   - HEAD  /api/tus<path>          → 返回 Upload-Offset(=当前文件大小) / Upload-Length；
+//     无活动上传(缓存缺失/文件不存在)返回 404。
+//   - POST  /api/tus<path>?override → 头 Upload-Length 创建上传(并清空已有文件)，返回 201。
+//   - PATCH /api/tus<path>          → 头 Upload-Offset + Content-Type:
+//     application/offset+octet-stream，分块追加，返回 204 + 新 Upload-Offset。
+func (c *Client) putTus(remote string, f *os.File, size int64, bar *progress.Bar) error {
+	tusURL := c.Server + "/api/tus" + encodePath(remote)
+
+	// 先 HEAD 探测是否有可续传的活动上传。
+	offset, resumable, err := c.tusHead(tusURL, size)
+	if err != nil {
+		return err
+	}
+	if !resumable {
+		// 没有匹配的活动上传：新建（override=true 覆盖可能存在的旧文件）。
+		if err := c.tusPost(tusURL, size); err != nil {
+			return err
+		}
+		offset = 0
+	}
+
+	if resumable && offset > 0 {
+		fmt.Fprintf(os.Stderr, "断点续传：服务端已有 %d/%d 字节，从该处继续\n", offset, size)
+	}
+	bar.Start(size)
+	if offset > 0 {
+		// 续传：把已在服务端的字节计入进度，并把本地文件指针移到该位置。
+		bar.Add(offset)
+		if _, err := f.Seek(offset, io.SeekStart); err != nil {
+			return err
+		}
+	}
+
+	for offset < size {
+		chunk := tusChunkSize
+		if remaining := size - offset; remaining < chunk {
+			chunk = remaining
+		}
+		newOffset, err := c.tusPatch(tusURL, offset, f, chunk, bar)
+		if err != nil {
+			return err
+		}
+		if newOffset <= offset {
+			return fmt.Errorf("上传未推进：服务端 offset 停在 %d", newOffset)
+		}
+		offset = newOffset
+	}
+
+	bar.Done()
+	return nil
+}
+
+// tusHead 查询活动上传的当前 offset。
+// 返回 (offset, resumable, err)：resumable=false 表示需要重新 POST 创建。
+func (c *Client) tusHead(tusURL string, size int64) (int64, bool, error) {
+	req, err := http.NewRequest(http.MethodHead, tusURL, nil)
+	if err != nil {
+		return 0, false, err
+	}
+	req.Header.Set("Tus-Resumable", tusVersion)
+	resp, err := c.do(req)
+	if err != nil {
+		return 0, false, err
+	}
+	defer resp.Body.Close()
+	io.Copy(io.Discard, resp.Body)
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		// 仅当声明的总长与本地一致才续传，否则当作需要重新创建。
+		if ul, err := strconv.ParseInt(resp.Header.Get("Upload-Length"), 10, 64); err == nil && ul != size {
+			return 0, false, nil
+		}
+		off, err := strconv.ParseInt(resp.Header.Get("Upload-Offset"), 10, 64)
+		if err != nil {
+			return 0, false, nil
+		}
+		return off, true, nil
+	case http.StatusNotFound, http.StatusForbidden:
+		return 0, false, nil
+	case http.StatusUnauthorized:
+		return 0, false, errUnauthorized
+	default:
+		return 0, false, fmt.Errorf("tus HEAD 失败 (HTTP %d)", resp.StatusCode)
+	}
+}
+
+// tusPost 创建一个 tus 上传（会清空可能已存在的同名文件）。
+func (c *Client) tusPost(tusURL string, size int64) error {
+	req, err := http.NewRequest(http.MethodPost, tusURL+"?override=true", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Tus-Resumable", tusVersion)
+	req.Header.Set("Upload-Length", strconv.FormatInt(size, 10))
 	resp, err := c.do(req)
 	if err != nil {
 		return err
@@ -198,17 +357,56 @@ func (c *Client) Put(remote, local string) error {
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	switch resp.StatusCode {
-	case http.StatusOK, http.StatusCreated:
+	case http.StatusCreated:
 		return nil
 	case http.StatusUnauthorized:
 		return errUnauthorized
+	case http.StatusConflict:
+		return fmt.Errorf("远程已存在同名文件且无法覆盖")
 	default:
-		return fmt.Errorf("上传失败 (HTTP %d): %s", resp.StatusCode, strings.TrimSpace(string(body)))
+		return fmt.Errorf("tus 创建失败 (HTTP %d): %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+}
+
+// tusPatch 从 offset 起追加一个 chunk 字节的块，返回服务端报告的新 offset。
+func (c *Client) tusPatch(tusURL string, offset int64, f io.Reader, chunk int64, bar *progress.Bar) (int64, error) {
+	var body io.Reader = io.LimitReader(f, chunk)
+	if bar != nil {
+		body = &countingReader{r: body, cb: bar.Add}
+	}
+	req, err := http.NewRequest(http.MethodPatch, tusURL, body)
+	if err != nil {
+		return 0, err
+	}
+	req.ContentLength = chunk
+	req.Header.Set("Tus-Resumable", tusVersion)
+	req.Header.Set("Content-Type", "application/offset+octet-stream")
+	req.Header.Set("Upload-Offset", strconv.FormatInt(offset, 10))
+	resp, err := c.do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	rb, _ := io.ReadAll(resp.Body)
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		newOffset, err := strconv.ParseInt(resp.Header.Get("Upload-Offset"), 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("tus 响应缺少有效 Upload-Offset")
+		}
+		return newOffset, nil
+	case http.StatusUnauthorized:
+		return 0, errUnauthorized
+	case http.StatusConflict:
+		return 0, fmt.Errorf("tus offset 冲突 (HTTP 409): %s", strings.TrimSpace(string(rb)))
+	default:
+		return 0, fmt.Errorf("tus 上传块失败 (HTTP %d): %s", resp.StatusCode, strings.TrimSpace(string(rb)))
 	}
 }
 
 // Get 下载远程文件到本地路径。背后接口：GET /api/raw/<path>，响应体即文件字节。
-func (c *Client) Get(remote, local string) (int64, error) {
+// bar 为可选进度条（nil 表示不显示），总大小取自响应 Content-Length。
+func (c *Client) Get(remote, local string, bar *progress.Bar) (int64, error) {
 	if !strings.HasPrefix(remote, "/") {
 		remote = "/" + remote
 	}
@@ -236,10 +434,17 @@ func (c *Client) Get(remote, local string) (int64, error) {
 		return 0, err
 	}
 	defer out.Close()
-	n, err := io.Copy(out, resp.Body)
+
+	bar.Start(resp.ContentLength)
+	var src io.Reader = resp.Body
+	if bar != nil {
+		src = &countingReader{r: resp.Body, cb: bar.Add}
+	}
+	n, err := io.Copy(out, src)
 	if err != nil {
 		return 0, err
 	}
+	bar.Done()
 	return n, nil
 }
 

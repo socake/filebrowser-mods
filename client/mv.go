@@ -12,8 +12,9 @@ import (
 // PATCH /api/resources/<src>?action=rename&destination=<dst>。
 func runMv(args []string) error {
 	fs := flag.NewFlagSet("mv", flag.ExitOnError)
+	profile := fs.String("profile", "", "指定使用的 profile（缺省用当前）")
 	fs.Usage = func() {
-		fmt.Println("用法: lumen mv <源路径> <目标路径>")
+		fmt.Println("用法: lumen mv [--profile 名] <源路径> <目标路径>")
 		fs.PrintDefaults()
 	}
 	fs.Parse(args)
@@ -24,7 +25,7 @@ func runMv(args []string) error {
 		return fmt.Errorf("缺少参数")
 	}
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(*profile)
 	if err != nil {
 		return err
 	}

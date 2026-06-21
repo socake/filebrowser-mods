@@ -19,9 +19,10 @@ func runShare(args []string) error {
 		password = fs.String("password", "", "访问密码（留空则无密码）")
 		expires  = fs.String("expires", "", "有效期数值（留空表示永久）")
 		unit     = fs.String("unit", "hours", "有效期单位: seconds|minutes|hours|days")
+		profile  = fs.String("profile", "", "指定使用的 profile（缺省用当前）")
 	)
 	fs.Usage = func() {
-		fmt.Println("用法: lumen share [-password ..] [-expires N -unit hours] <远程路径>")
+		fmt.Println("用法: lumen share [--profile 名] [-password ..] [-expires N -unit hours] <远程路径>")
 		fs.PrintDefaults()
 	}
 	fs.Parse(args)
@@ -32,7 +33,7 @@ func runShare(args []string) error {
 		return fmt.Errorf("缺少远程路径")
 	}
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(*profile)
 	if err != nil {
 		return err
 	}

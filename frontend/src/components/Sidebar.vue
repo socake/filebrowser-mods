@@ -97,13 +97,13 @@
 
     <p class="credits">
       <span>
-        <span v-if="disableExternal">File Browser</span>
+        <span v-if="disableExternal">{{ name }}</span>
         <a
           v-else
           rel="noopener noreferrer"
           target="_blank"
-          href="https://github.com/filebrowser/filebrowser"
-          >File Browser</a
+          href="https://github.com/socake/filebrowser-mods"
+          >{{ name }}</a
         >
         <span> {{ " " }} {{ version }}</span>
       </span>
@@ -123,6 +123,7 @@ import { useLayoutStore } from "@/stores/layout";
 
 import * as auth from "@/utils/auth";
 import {
+  name,
   version,
   signup,
   hideLoginButton,
@@ -157,6 +158,7 @@ export default {
     },
     signup: () => signup,
     hideLoginButton: () => hideLoginButton,
+    name: () => name,
     version: () => version,
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,

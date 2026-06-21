@@ -2,21 +2,92 @@ package fbhttp
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/filebrowser/filebrowser/v2/share"
 )
 
 const uploadDir = "/uploads"
+
+// publicUploadRateLimit 控制每个来源 IP 在 publicUploadWindow 时间窗口内
+// 允许的最大上传次数（固定窗口计数器，进程内 map+mutex 实现）。
+// 这是为了防滥用（刷盘/刷分享表），不影响"免登录投递"这个产品卖点。
+const (
+	publicUploadRateLimit = 10              // 每个 IP 每个窗口允许的次数
+	publicUploadWindow    = time.Minute     // 时间窗口
+	publicUploadTokenEnv  = "FB_PUBLIC_UPLOAD_TOKEN"
+)
+
+// ipUploadCounter 是某个 IP 在当前固定窗口内的计数。
+type ipUploadCounter struct {
+	count       int
+	windowStart time.Time
+}
+
+var (
+	publicUploadMu       sync.Mutex
+	publicUploadCounters = map[string]*ipUploadCounter{}
+)
+
+// validUploadToken 校验上传口令。从 X-Upload-Token 头、Authorization: Bearer
+// 头或 ?token= 查询参数中取值，与期望值做常量时间比较。
+// 注意：不从 multipart 表单字段读取，以免提前消费请求体导致后面的
+// ParseMultipartForm(1GB) 上限失效。
+func validUploadToken(r *http.Request, expected string) bool {
+	got := r.Header.Get("X-Upload-Token")
+	if got == "" {
+		if auth := r.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
+			got = strings.TrimPrefix(auth, "Bearer ")
+		}
+	}
+	if got == "" {
+		got = r.URL.Query().Get("token")
+	}
+	if got == "" {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(got), []byte(expected)) == 1
+}
+
+// clientIP 从请求中提取来源 IP（仅取 host 部分，去掉端口）。
+func clientIP(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
+
+// allowPublicUpload 实现固定窗口限速：在 publicUploadWindow 内，同一 IP
+// 最多 publicUploadRateLimit 次。超限返回 false。
+func allowPublicUpload(ip string) bool {
+	now := time.Now()
+	publicUploadMu.Lock()
+	defer publicUploadMu.Unlock()
+
+	c, ok := publicUploadCounters[ip]
+	if !ok || now.Sub(c.windowStart) >= publicUploadWindow {
+		publicUploadCounters[ip] = &ipUploadCounter{count: 1, windowStart: now}
+		return true
+	}
+	if c.count >= publicUploadRateLimit {
+		return false
+	}
+	c.count++
+	return true
+}
 
 type publicUploadResponse struct {
 	Filename    string `json:"filename"`
@@ -28,6 +99,20 @@ type publicUploadResponse struct {
 }
 
 var publicUploadHandler handleFunc = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	// 可选鉴权开关：若设置了环境变量 FB_PUBLIC_UPLOAD_TOKEN，则要求请求带上
+	// 该口令才能上传（请求头 X-Upload-Token、Authorization: Bearer <token>
+	// 或表单字段 token 任一即可）；不设置则维持"免登录投递"。
+	if expected := os.Getenv(publicUploadTokenEnv); expected != "" {
+		if !validUploadToken(r, expected) {
+			return http.StatusUnauthorized, fmt.Errorf("upload token required")
+		}
+	}
+
+	// 基础限速：按来源 IP 做固定窗口计数，防止匿名投递箱被刷盘/刷分享表。
+	if !allowPublicUpload(clientIP(r)) {
+		return http.StatusTooManyRequests, fmt.Errorf("rate limit exceeded, try again later")
+	}
+
 	// Get admin user (ID=1) for filesystem access
 	user, err := d.store.Users.Get(d.server.Root, uint(1))
 	if err != nil {
