@@ -69,7 +69,7 @@ filebrowser 是个很好的文件管理器内核 —— 资源 CRUD、断点续�
 | :---: | :---: |
 | ![用户管理](docs/img/10-user-management.png) | ![宣传图](docs/img/promo-desktop.png) |
 
-> 在线演示：**[file.vishine.top](https://file.vishine.top)**（默认 `admin` / `admin`，仅供体验）。
+> 在线演示：**[file.vishine.top](https://file.vishine.top)**（演示环境，可浏览登录页与产品介绍页 `/about`）。
 
 ---
 
@@ -173,7 +173,21 @@ docker run -d --name lumenbrowser \
 
 ## 💖 赞助 / Sponsor
 
-LumenBrowser 是用业余时间一点点折腾出来的。如果它帮你省下了时间，或者你欣赏这份折腾劲儿，欢迎 **点个 Star ⭐、关注 [GitHub](https://github.com/socake)** —— 这是对我最实在的支持。
+LumenBrowser 是用业余时间一点点折腾出来的。如果它帮你省下了时间，或者你欣赏这份折腾劲儿，欢迎 **点个 Star ⭐** 或请我喝杯咖啡 ☕
+
+<table>
+  <tr>
+    <td align="center">
+      <!-- TODO: 微信赞助二维码图后补，放到 docs/img/sponsor-wechat.png -->
+      <b>微信</b><br>
+      <code>hwzpro</code>
+    </td>
+    <td align="center">
+      <b>GitHub</b><br>
+      <a href="https://github.com/socake">github.com/socake</a>
+    </td>
+  </tr>
+</table>
 
 你的每一份支持，都会变成继续维护、继续写文档的动力。
 
