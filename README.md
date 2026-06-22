@@ -177,15 +177,9 @@ LumenBrowser 是用业余时间一点点折腾出来的。如果它帮你省下�
 
 <table>
   <tr>
-    <td align="center">
-      <!-- TODO: 微信赞助二维码图后补，放到 docs/img/sponsor-wechat.png -->
-      <b>微信</b><br>
-      <code>hwzpro</code>
-    </td>
-    <td align="center">
-      <b>GitHub</b><br>
-      <a href="https://github.com/socake">github.com/socake</a>
-    </td>
+    <td align="center"><img src="docs/img/sponsor-wechat.png" width="200" alt="微信赞助"><br><b>微信</b></td>
+    <td align="center"><img src="docs/img/sponsor-alipay.jpg" width="200" alt="支付宝赞助"><br><b>支付宝</b></td>
+    <td align="center"><br><b>GitHub</b><br><a href="https://github.com/socake">github.com/socake</a></td>
   </tr>
 </table>
 
