@@ -66,13 +66,24 @@
               <input class="ll-btn" type="submit" :value="t('login.submit')" />
             </form>
 
-            <!-- 注册：占位（暂不开放，灰色） -->
-            <div v-show="tab === 'reg'" class="ll-pane ll-soon">
-              <div class="ll-soon-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+            <!-- 注册：完整邮箱表单(占坑),点注册才提示暂未开放 -->
+            <div v-show="tab === 'reg'" class="ll-pane">
+              <div class="ll-ttl">创建账号</div>
+              <div class="ll-sub">用邮箱注册，开启你的文件之光</div>
+              <div v-if="regNotice" class="ll-logout">注册暂未开放，敬请期待 ✦</div>
+              <div class="ll-fld">
+                <label>邮箱</label>
+                <input type="email" placeholder="you@example.com" />
               </div>
-              <div class="ll-soon-t">注册暂未开放</div>
-              <div class="ll-soon-d">邮箱注册功能即将上线，敬请期待 ✦</div>
+              <div class="ll-fld">
+                <label>密码</label>
+                <input type="password" placeholder="设置登录密码" />
+              </div>
+              <div class="ll-fld">
+                <label>确认密码</label>
+                <input type="password" placeholder="再次输入密码" />
+              </div>
+              <button type="button" class="ll-btn" @click="regNotice = true">注 册</button>
             </div>
           </div>
         </div>
@@ -92,6 +103,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
 const tab = ref<"login" | "reg">("login");
+const regNotice = ref(false);
 const error = ref<string>("");
 const username = ref<string>("");
 const password = ref<string>("");
@@ -211,7 +223,8 @@ onMounted(() => {
 #login.lumen-login .ll-tabs { display: flex; gap: 4px; background: #f4f4f5; border-radius: 12px; padding: 4px; margin-bottom: 24px; }
 #login.lumen-login .ll-tabs button { flex: 1; height: 38px; border: 0; background: transparent; border-radius: 9px; font-size: 14px; font-weight: 700; color: #9a9a9e; cursor: pointer; transition: 0.15s; }
 #login.lumen-login .ll-tabs button.on { background: #fff; color: var(--lumen-accent); box-shadow: 0 2px 8px -4px rgba(20, 20, 20, 0.25); }
-#login.lumen-login .ll-pane { display: block; }
+/* 重置原 login.css 对 form 的 fixed 居中 + max-width 压窄(否则脱离卡片重叠) */
+#login.lumen-login .ll-pane { display: block; position: static; transform: none; top: auto; left: auto; right: auto; max-width: none; min-width: 0; width: auto; margin: 0; min-height: 326px; }
 #login.lumen-login .ll-ttl { font-size: 22px; font-weight: 800; margin-bottom: 5px; color: var(--lumen-accent); }
 #login.lumen-login .ll-sub { font-size: 13.5px; color: #9a9a9e; margin-bottom: 22px; }
 #login.lumen-login .ll-fld { margin-bottom: 14px; }
@@ -224,13 +237,6 @@ onMounted(() => {
 #login.lumen-login .ll-wrong { background: #fde8e8; color: #c0392b; padding: 10px 12px; border-radius: 9px; font-size: 13px; margin-bottom: 14px; text-align: center; }
 #login.lumen-login .ll-logout { background: #fff4e5; color: #b76e00; padding: 10px 12px; border-radius: 9px; font-size: 13px; margin-bottom: 14px; text-align: center; text-transform: none; }
 #login.lumen-login #recaptcha { margin-bottom: 14px; }
-/* 注册占位：灰、不可填 */
-#login.lumen-login .ll-soon { text-align: center; padding: 30px 10px 24px; }
-#login.lumen-login .ll-soon-icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 15px; background: #f4f4f5; color: #b6b6ba; display: flex; align-items: center; justify-content: center; }
-#login.lumen-login .ll-soon-icon svg { width: 26px; height: 26px; }
-#login.lumen-login .ll-soon-t { font-size: 17px; font-weight: 750; color: #8a8a8e; margin-bottom: 6px; }
-#login.lumen-login .ll-soon-d { font-size: 13px; color: #b6b6ba; line-height: 1.6; }
-
 #login.lumen-login .ll-foot { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px; color: #9a9a9e; font-size: 12.5px; font-weight: 600; }
 #login.lumen-login .ll-foot-ln { width: 38px; height: 1px; background: #9a9a9e; opacity: 0.5; }
 
