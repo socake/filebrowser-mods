@@ -119,7 +119,7 @@
         </div>
       </div>
 
-      <div class="ll-foot"><span class="ll-foot-ln"></span>{{ name }} · Bring files to light</div>
+      <div class="ll-foot"><span class="ll-foot-ln"></span>{{ name }} · Bring files to light · Powered by <a href="https://github.com/socake" target="_blank" rel="noopener" style="color:var(--lumen-accent);text-decoration:none;margin-left:4px">socake</a></div>
     </div>
   </div>
 </template>

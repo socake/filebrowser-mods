@@ -130,10 +130,14 @@
           v-else
           rel="noopener noreferrer"
           target="_blank"
-          href="https://github.com/socake/filebrowser-mods"
+          href="https://github.com/socake/LumenBrowser"
           >{{ name }}</a
         >
         <span> {{ " " }} {{ version }}</span>
+        <span v-if="!disableExternal">
+          · Powered by
+          <a rel="noopener" target="_blank" href="https://github.com/socake" style="color: var(--lumen-accent)">socake</a></span
+        >
       </span>
       <span>
         <a @click="help">{{ $t("sidebar.help") }}</a>

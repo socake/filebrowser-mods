@@ -99,7 +99,7 @@
 
     <footer class="ab-foot">
       <span>LumenBrowser · Bring files to light</span>
-      <span>基于 filebrowser · Apache-2.0</span>
+      <span>Powered by <a href="https://github.com/socake" target="_blank" rel="noopener" style="color:var(--lumen-accent);text-decoration:none">socake</a> · 基于 filebrowser · Apache-2.0</span>
     </footer>
   </div>
 </template>
