@@ -232,8 +232,8 @@ onMounted(() => {
 #login.lumen-login .ll-brand b { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; color: var(--lumen-accent); }
 #login.lumen-login .ll-tag { font-size: 12px; font-weight: 700; letter-spacing: 0.22em; color: #9a9a9e; }
 #login.lumen-login .ll-top-right { display: flex; align-items: center; gap: 18px; }
-#login.lumen-login .ll-about { font-size: 12.5px; font-weight: 600; color: #9a9a9e; text-decoration: none; letter-spacing: 0.01em; transition: color 0.15s; }
-#login.lumen-login .ll-about:hover { color: var(--lumen-accent); }
+#login.lumen-login .ll-about { font-size: 13px; font-weight: 700; color: #fff; background: var(--lumen-accent); text-decoration: none; letter-spacing: 0.01em; padding: 9px 17px; border-radius: 10px; transition: 0.15s; }
+#login.lumen-login .ll-about:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -10px rgba(20, 20, 20, 0.45); }
 
 #login.lumen-login .ll-main { flex: 1; display: grid; grid-template-columns: 1.04fr 0.96fr; gap: 48px; align-items: center; }
 
@@ -259,7 +259,7 @@ onMounted(() => {
 #login.lumen-login .ll-tabs button { flex: 1; height: 38px; border: 0; background: transparent; border-radius: 9px; font-size: 14px; font-weight: 700; color: #9a9a9e; cursor: pointer; transition: 0.15s; }
 #login.lumen-login .ll-tabs button.on { background: #fff; color: var(--lumen-accent); box-shadow: 0 2px 8px -4px rgba(20, 20, 20, 0.25); }
 /* 重置原 login.css 对 form 的 fixed 居中 + max-width 压窄(否则脱离卡片重叠) */
-#login.lumen-login .ll-pane { display: block; position: static; transform: none; top: auto; left: auto; right: auto; max-width: none; min-width: 0; width: auto; margin: 0; min-height: 412px; }
+#login.lumen-login .ll-pane { display: block; position: static; transform: none; top: auto; left: auto; right: auto; max-width: none; min-width: 0; width: auto; margin: 0; }
 #login.lumen-login .ll-ttl { font-size: 22px; font-weight: 800; margin-bottom: 5px; color: var(--lumen-accent); }
 #login.lumen-login .ll-sub { font-size: 13.5px; color: #9a9a9e; margin-bottom: 22px; }
 #login.lumen-login .ll-fld { margin-bottom: 14px; position: relative; }
