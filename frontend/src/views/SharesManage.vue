@@ -101,8 +101,8 @@
               </td>
               <td>
                 <div class="fname">
-                  <div class="fi" :style="{ color: badge(link.path).color }">
-                    {{ badge(link.path).label }}
+                  <div class="fi" :style="{ color: getFileBadge(link.path).color }">
+                    {{ getFileBadge(link.path).label }}
                   </div>
                   <div>
                     <div class="n">{{ baseName(link.path) }}</div>
@@ -123,9 +123,14 @@
                   {{ link.type === "download" ? "下载" : "预览" }}
                 </span>
               </td>
-              <td class="muted">{{ createdLabel(link) }}</td>
-              <td :class="{ muted: link.expire === 0, expired: isExpired(link) }">
-                {{ expireLabel(link) }}
+              <td class="muted">{{ formatCreatedTime(link.createdAt) }}</td>
+              <td
+                :class="{
+                  muted: link.expire === 0,
+                  expired: isShareExpired(link.expire),
+                }"
+              >
+                {{ formatShareExpire(link.expire) }}
               </td>
               <td>
                 <i
@@ -164,13 +169,18 @@
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { share as api, users } from "@/api";
-import dayjs from "dayjs";
 import Errors from "@/views/Errors.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import { computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
-import { copy } from "@/utils/clipboard";
+import { copyToClipboardWithFallback } from "@/utils/clipboard";
+import { baseName, getFileBadge, getFileCategory } from "@/utils/fileType";
+import {
+  isShareExpired,
+  formatShareExpire,
+  formatCreatedTime,
+} from "@/utils/share";
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
@@ -211,90 +221,6 @@ onMounted(async () => {
   }
 });
 
-// ---- 文件类型判定 ----
-const EXT_MAP: Record<string, string> = {
-  png: "image",
-  jpg: "image",
-  jpeg: "image",
-  gif: "image",
-  webp: "image",
-  bmp: "image",
-  svg: "image",
-  ico: "image",
-  tiff: "image",
-  heic: "image",
-  pdf: "pdf",
-  doc: "office",
-  docx: "office",
-  xls: "office",
-  xlsx: "office",
-  ppt: "office",
-  pptx: "office",
-  txt: "document",
-  md: "document",
-  rtf: "document",
-  odt: "document",
-  csv: "document",
-  zip: "archive",
-  rar: "archive",
-  "7z": "archive",
-  tar: "archive",
-  gz: "archive",
-  bz2: "archive",
-  xz: "archive",
-};
-
-const extOf = (path: string): string => {
-  const name = baseName(path);
-  const idx = name.lastIndexOf(".");
-  if (idx < 0 || idx === name.length - 1) return "";
-  return name.slice(idx + 1).toLowerCase();
-};
-
-const categoryOf = (path: string): string => {
-  const ext = extOf(path);
-  return EXT_MAP[ext] || "other";
-};
-
-const baseName = (path: string): string => {
-  const clean = path.replace(/\/+$/, "");
-  const parts = clean.split("/");
-  return parts[parts.length - 1] || path;
-};
-
-const badge = (path: string): { label: string; color: string } => {
-  const ext = extOf(path);
-  const cat = categoryOf(path);
-  if (cat === "image") return { label: "IMG", color: "#5f5f63" };
-  if (cat === "pdf") return { label: "PDF", color: "#e5484d" };
-  if (cat === "archive") return { label: "ZIP", color: "#f59e0b" };
-  if (cat === "office") {
-    if (ext.startsWith("xls")) return { label: "XLS", color: "#1e9e5a" };
-    if (ext.startsWith("ppt")) return { label: "PPT", color: "#f59e0b" };
-    return { label: "DOC", color: "#2b7cd3" };
-  }
-  if (cat === "document") return { label: "TXT", color: "#5f5f63" };
-  return {
-    label: (ext || "?").slice(0, 3).toUpperCase(),
-    color: "#5f5f63",
-  };
-};
-
-// ---- 过期/时间 ----
-const isExpired = (link: Share): boolean =>
-  !!link.expire && link.expire !== 0 && link.expire * 1000 < Date.now();
-
-const expireLabel = (link: Share): string => {
-  if (!link.expire || link.expire === 0) return "永久";
-  if (isExpired(link)) return "已过期";
-  return dayjs(link.expire * 1000).fromNow();
-};
-
-const createdLabel = (link: Share): string => {
-  if (!link.createdAt) return "未知";
-  return dayjs(link.createdAt * 1000).format("YYYY-MM-DD HH:mm");
-};
-
 // ---- 筛选 ----
 const filtered = computed(() => {
   const now = Date.now();
@@ -304,7 +230,7 @@ const filtered = computed(() => {
       if (ty !== filterType.value) return false;
     }
     if (filterFileType.value !== "all") {
-      if (categoryOf(link.path) !== filterFileType.value) return false;
+      if (getFileCategory(link.path) !== filterFileType.value) return false;
     }
     if (filterCreated.value !== "all") {
       if (!link.createdAt) return false;
@@ -314,7 +240,7 @@ const filtered = computed(() => {
     if (filterExpire.value === "permanent") {
       if (link.expire && link.expire !== 0) return false;
     } else if (filterExpire.value === "expired") {
-      if (!isExpired(link)) return false;
+      if (!isShareExpired(link.expire)) return false;
     }
     return true;
   });
@@ -346,14 +272,9 @@ const toggleAll = () => {
 const buildLink = (share: Share) => api.getShareURL(share);
 
 const copyLink = (link: Share) => {
-  const text = buildLink(link);
-  copy({ text }).then(
+  copyToClipboardWithFallback(buildLink(link)).then(
     () => $showSuccess(t("success.linkCopied")),
-    () =>
-      copy({ text }, { permission: true }).then(
-        () => $showSuccess(t("success.linkCopied")),
-        (e) => $showError(e)
-      )
+    (e) => $showError(e)
   );
 };
 

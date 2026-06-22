@@ -184,7 +184,9 @@ import { useFileStore } from "@/stores/file";
 import * as api from "@/api/index";
 import { filesize } from "@/utils";
 import { useLayoutStore } from "@/stores/layout";
-import { copy } from "@/utils/clipboard";
+import { copyToClipboardWithFallback } from "@/utils/clipboard";
+import { getExtBadge } from "@/utils/fileType";
+import { formatTimestamp } from "@/utils/share";
 
 export default {
   name: "share",
@@ -227,8 +229,7 @@ export default {
       const it = this.fileItem;
       if (!it) return "—";
       if (it.isDir) return "DIR";
-      const ext = (it.extension || "").replace(/^\./, "");
-      return ext ? ext.slice(0, 4).toUpperCase() : "FILE";
+      return getExtBadge(it.extension);
     },
     fileMeta() {
       const it = this.fileItem;
@@ -239,7 +240,7 @@ export default {
     expireLabel() {
       if (this.created && this.created.expire) {
         return this.$t("prompts.shareExpiresAt", {
-          date: new Date(this.created.expire * 1000).toLocaleString(),
+          date: formatTimestamp(this.created.expire),
         });
       }
       return this.$t("permanent");
@@ -257,14 +258,9 @@ export default {
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers"]),
     copyToClipboard: function (text) {
-      copy({ text }).then(
+      copyToClipboardWithFallback(text).then(
         () => this.$showSuccess(this.$t("success.linkCopied")),
-        () => {
-          copy({ text }, { permission: true }).then(
-            () => this.$showSuccess(this.$t("success.linkCopied")),
-            (e) => this.$showError(e)
-          );
-        }
+        (e) => this.$showError(e)
       );
     },
     expireParams() {

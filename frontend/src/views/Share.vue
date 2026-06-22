@@ -296,7 +296,8 @@ import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
-import { copy } from "@/utils/clipboard";
+import { copy, copyToClipboardWithFallback } from "@/utils/clipboard";
+import { getExtBadge } from "@/utils/fileType";
 import { marked } from "marked";
 import markedKatex from "marked-katex-extension";
 import DOMPurify from "dompurify";
@@ -374,10 +375,7 @@ const shareLink = computed(() =>
   typeof window !== "undefined" ? window.location.href : ""
 );
 
-const fileExtBadge = computed(() => {
-  const ext = (req.value?.extension || "").replace(/^\./, "");
-  return ext ? ext.slice(0, 4).toUpperCase() : "FILE";
-});
+const fileExtBadge = computed(() => getExtBadge(req.value?.extension));
 
 const isPdfFile = computed(
   () =>
@@ -559,24 +557,9 @@ const linkSelected = () => {
 };
 
 const copyToClipboard = (text: string) => {
-  copy({ text }).then(
-    () => {
-      // clipboard successfully set
-      $showSuccess(t("success.linkCopied"));
-    },
-    () => {
-      // clipboard write failed
-      copy({ text }, { permission: true }).then(
-        () => {
-          // clipboard successfully set
-          $showSuccess(t("success.linkCopied"));
-        },
-        (e) => {
-          // clipboard write failed
-          $showError(e);
-        }
-      );
-    }
+  copyToClipboardWithFallback(text).then(
+    () => $showSuccess(t("success.linkCopied")),
+    (e) => $showError(e)
   );
 };
 

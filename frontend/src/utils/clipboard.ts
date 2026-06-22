@@ -51,6 +51,16 @@ export function copy(data: ClipboardArgs, opts?: ClipboardOpts) {
   });
 }
 
+/**
+ * Copy text to the clipboard with the standard two-level fallback: try a plain
+ * copy first, and if that fails retry after explicitly requesting permission.
+ * Resolves on success, rejects with the final error. Callers handle their own
+ * toast / messaging.
+ */
+export function copyToClipboardWithFallback(text: string): Promise<void> {
+  return copy({ text }).catch(() => copy({ text }, { permission: true }));
+}
+
 export function read() {
   return new Promise<string>((resolve, reject) => {
     if (
