@@ -292,7 +292,7 @@ export default {
 
         this.created = res;
         this.createdName = this.fileItem ? this.fileItem.name : res.path;
-        this.createdURL = window.location.origin + api.share.getShareURL(res);
+        this.createdURL = api.share.getShareURL(res);
         this.state = "created";
       } catch (e) {
         this.$showError(e);
