@@ -7,7 +7,10 @@
           <span class="ll-logo"><i></i></span>
           <b>{{ name }}</b>
         </div>
-        <div class="ll-tag">SELF-HOSTED FILE WORKSPACE</div>
+        <div class="ll-top-right">
+          <router-link to="/about" class="ll-about">产品介绍 ↗</router-link>
+          <div class="ll-tag">SELF-HOSTED FILE WORKSPACE</div>
+        </div>
       </div>
 
       <div class="ll-main">
@@ -57,33 +60,60 @@
                 <label>{{ t("login.username") }}</label>
                 <input autofocus type="text" autocapitalize="off" v-model="username" placeholder="you@example.com" />
               </div>
-              <div class="ll-fld">
+              <div class="ll-fld ll-fld-pwd">
                 <label>{{ t("login.password") }}</label>
-                <input type="password" v-model="password" placeholder="••••••••" />
+                <input :type="showLoginPwd ? 'text' : 'password'" v-model="password" placeholder="••••••••" />
+                <button
+                  type="button"
+                  class="ll-eye"
+                  :aria-label="showLoginPwd ? '隐藏密码' : '显示密码'"
+                  @click="showLoginPwd = !showLoginPwd"
+                >
+                  <svg v-if="showLoginPwd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 3l18 18M10.6 10.7a3 3 0 0 0 4.2 4.2M9.9 5.2A9.6 9.6 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.3 3.9M6.6 6.7A17 17 0 0 0 2 12s4 7 10 7a9.5 9.5 0 0 0 3.1-.5" /></svg>
+                </button>
               </div>
 
               <div v-if="recaptcha" id="recaptcha"></div>
               <input class="ll-btn" type="submit" :value="t('login.submit')" />
             </form>
 
-            <!-- 注册：完整邮箱表单(占坑),点注册才提示暂未开放 -->
+            <!-- 注册：完整邮箱表单(占坑),按钮禁用 + 常显演示环境提示 -->
             <div v-show="tab === 'reg'" class="ll-pane">
               <div class="ll-ttl">创建账号</div>
               <div class="ll-sub">用邮箱注册，开启你的文件之光</div>
-              <div v-if="regNotice" class="ll-logout">注册暂未开放，敬请期待 ✦</div>
               <div class="ll-fld">
                 <label>邮箱</label>
                 <input type="email" placeholder="you@example.com" />
               </div>
-              <div class="ll-fld">
+              <div class="ll-fld ll-fld-pwd">
                 <label>密码</label>
-                <input type="password" placeholder="设置登录密码" />
+                <input :type="showRegPwd ? 'text' : 'password'" placeholder="设置登录密码" />
+                <button
+                  type="button"
+                  class="ll-eye"
+                  :aria-label="showRegPwd ? '隐藏密码' : '显示密码'"
+                  @click="showRegPwd = !showRegPwd"
+                >
+                  <svg v-if="showRegPwd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 3l18 18M10.6 10.7a3 3 0 0 0 4.2 4.2M9.9 5.2A9.6 9.6 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.3 3.9M6.6 6.7A17 17 0 0 0 2 12s4 7 10 7a9.5 9.5 0 0 0 3.1-.5" /></svg>
+                </button>
               </div>
-              <div class="ll-fld">
+              <div class="ll-fld ll-fld-pwd">
                 <label>确认密码</label>
-                <input type="password" placeholder="再次输入密码" />
+                <input :type="showRegPwd2 ? 'text' : 'password'" placeholder="再次输入密码" />
+                <button
+                  type="button"
+                  class="ll-eye"
+                  :aria-label="showRegPwd2 ? '隐藏密码' : '显示密码'"
+                  @click="showRegPwd2 = !showRegPwd2"
+                >
+                  <svg v-if="showRegPwd2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 3l18 18M10.6 10.7a3 3 0 0 0 4.2 4.2M9.9 5.2A9.6 9.6 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.3 3.9M6.6 6.7A17 17 0 0 0 2 12s4 7 10 7a9.5 9.5 0 0 0 3.1-.5" /></svg>
+                </button>
               </div>
-              <button type="button" class="ll-btn" @click="regNotice = true">注 册</button>
+              <div class="ll-reg-note">当前为演示环境，暂不开放注册</div>
+              <button type="button" class="ll-btn ll-btn-off" disabled>注 册</button>
             </div>
           </div>
         </div>
@@ -103,7 +133,9 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
 const tab = ref<"login" | "reg">("login");
-const regNotice = ref(false);
+const showLoginPwd = ref(false);
+const showRegPwd = ref(false);
+const showRegPwd2 = ref(false);
 const error = ref<string>("");
 const username = ref<string>("");
 const password = ref<string>("");
@@ -199,6 +231,9 @@ onMounted(() => {
 #login.lumen-login .ll-logo i::after { content: ""; position: absolute; inset: 3px; border: 1.8px solid #fff; border-radius: 50%; }
 #login.lumen-login .ll-brand b { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; color: var(--lumen-accent); }
 #login.lumen-login .ll-tag { font-size: 12px; font-weight: 700; letter-spacing: 0.22em; color: #9a9a9e; }
+#login.lumen-login .ll-top-right { display: flex; align-items: center; gap: 18px; }
+#login.lumen-login .ll-about { font-size: 12.5px; font-weight: 600; color: #9a9a9e; text-decoration: none; letter-spacing: 0.01em; transition: color 0.15s; }
+#login.lumen-login .ll-about:hover { color: var(--lumen-accent); }
 
 #login.lumen-login .ll-main { flex: 1; display: grid; grid-template-columns: 1.04fr 0.96fr; gap: 48px; align-items: center; }
 
@@ -224,16 +259,25 @@ onMounted(() => {
 #login.lumen-login .ll-tabs button { flex: 1; height: 38px; border: 0; background: transparent; border-radius: 9px; font-size: 14px; font-weight: 700; color: #9a9a9e; cursor: pointer; transition: 0.15s; }
 #login.lumen-login .ll-tabs button.on { background: #fff; color: var(--lumen-accent); box-shadow: 0 2px 8px -4px rgba(20, 20, 20, 0.25); }
 /* 重置原 login.css 对 form 的 fixed 居中 + max-width 压窄(否则脱离卡片重叠) */
-#login.lumen-login .ll-pane { display: block; position: static; transform: none; top: auto; left: auto; right: auto; max-width: none; min-width: 0; width: auto; margin: 0; min-height: 326px; }
+#login.lumen-login .ll-pane { display: block; position: static; transform: none; top: auto; left: auto; right: auto; max-width: none; min-width: 0; width: auto; margin: 0; min-height: 412px; }
 #login.lumen-login .ll-ttl { font-size: 22px; font-weight: 800; margin-bottom: 5px; color: var(--lumen-accent); }
 #login.lumen-login .ll-sub { font-size: 13.5px; color: #9a9a9e; margin-bottom: 22px; }
-#login.lumen-login .ll-fld { margin-bottom: 14px; }
+#login.lumen-login .ll-fld { margin-bottom: 14px; position: relative; }
 #login.lumen-login .ll-fld label { display: block; font-size: 12.5px; font-weight: 700; color: #5b5b60; margin-bottom: 7px; }
 #login.lumen-login .ll-fld input { width: 100%; height: 46px; border: 1.5px solid #ededee; border-radius: 11px; padding: 0 14px; font-size: 14.5px; background: #fafafa; outline: none; transition: 0.15s; color: var(--lumen-accent); box-sizing: border-box; }
 #login.lumen-login .ll-fld input:focus { border-color: var(--lumen-accent); background: #fff; box-shadow: 0 0 0 4px rgba(20, 20, 20, 0.05); }
 #login.lumen-login .ll-fld input::placeholder { color: #c2c2c6; }
+/* 密码框留出右侧眼睛按钮空间 */
+#login.lumen-login .ll-fld-pwd input { padding-right: 46px; }
+#login.lumen-login .ll-eye { position: absolute; right: 6px; bottom: 0; width: 40px; height: 46px; display: flex; align-items: center; justify-content: center; background: transparent; border: 0; padding: 0; cursor: pointer; color: #b4b4b8; transition: color 0.15s; }
+#login.lumen-login .ll-eye:hover { color: var(--lumen-accent); }
+#login.lumen-login .ll-eye svg { width: 19px; height: 19px; display: block; }
 #login.lumen-login .ll-btn { width: 100%; height: 48px; border: 0; border-radius: 11px; background: var(--lumen-accent); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: 0.15s; }
 #login.lumen-login .ll-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -12px rgba(20, 20, 20, 0.4); }
+/* 注册按钮禁用态：演示环境暂不开放 */
+#login.lumen-login .ll-btn-off, #login.lumen-login .ll-btn-off:hover { background: #d8d8dc; color: #fafafa; cursor: not-allowed; transform: none; box-shadow: none; }
+/* 常显的演示环境提示，低调灰字 */
+#login.lumen-login .ll-reg-note { text-align: center; font-size: 12.5px; color: #9a9a9e; margin: 4px 0 10px; letter-spacing: 0.01em; }
 #login.lumen-login .ll-wrong { background: #fde8e8; color: #c0392b; padding: 10px 12px; border-radius: 9px; font-size: 13px; margin-bottom: 14px; text-align: center; }
 #login.lumen-login .ll-logout { background: #fff4e5; color: #b76e00; padding: 10px 12px; border-radius: 9px; font-size: 13px; margin-bottom: 14px; text-align: center; text-transform: none; }
 #login.lumen-login #recaptcha { margin-bottom: 14px; }

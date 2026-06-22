@@ -85,9 +85,7 @@
           </div>
           <p v-if="dlError" class="mcp-token-err">{{ dlError }}</p>
           <div class="mcp-hint">
-            已自动识别你的系统（{{ detectedLabel }}）。下载后放到固定路径（如
-            <code>/usr/local/bin/lumen-mcp</code>），macOS / Linux 记得
-            <code>chmod +x lumen-mcp</code>。
+            已自动识别你的系统（{{ detectedLabel }}）。{{ dlHint }}
           </div>
         </li>
         <li>
@@ -223,12 +221,28 @@ const downloadMcp = async () => {
   }
 };
 
+// MCP 可执行文件的安装路径，按所选平台动态生成。
+// Windows 用 %USERPROFILE%\lumen-mcp\lumen-mcp.exe（源码里 \\ = 单个反斜杠，
+// 经 JSON.stringify 后在 pre 代码块里渲染为合法的 \\ 双反斜杠）。
+const mcpCommand = computed(() =>
+  dlTarget.value.startsWith("windows")
+    ? "%USERPROFILE%\\lumen-mcp\\lumen-mcp.exe"
+    : "/usr/local/bin/lumen-mcp"
+);
+
+// 下载步骤的「放哪 + 怎么用」提示，按平台切换。
+const dlHint = computed(() =>
+  dlTarget.value.startsWith("windows")
+    ? "下载后放到 %USERPROFILE%\\lumen-mcp\\ 目录（无需 chmod），下方配置的 command 已指向该 lumen-mcp.exe。"
+    : "下载后放到固定路径（如 /usr/local/bin/lumen-mcp），并执行 chmod +x lumen-mcp 赋予可执行权限。"
+);
+
 const configJson = computed(() =>
   JSON.stringify(
     {
       mcpServers: {
         lumen: {
-          command: "/usr/local/bin/lumen-mcp",
+          command: mcpCommand.value,
           env: {
             LUMEN_SERVER: origin,
             LUMEN_TOKEN: generatedToken.value || "<你的 token>",

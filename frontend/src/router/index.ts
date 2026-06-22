@@ -12,6 +12,7 @@ import ProfileSettings from "@/views/settings/Profile.vue";
 import McpSettings from "@/views/settings/McpSettings.vue";
 import SharesManage from "@/views/SharesManage.vue";
 import Roles from "@/views/Roles.vue";
+import About from "@/views/About.vue";
 import Errors from "@/views/Errors.vue";
 import { useAuthStore } from "@/stores/auth";
 import { baseURL, name } from "@/utils/constants";
@@ -21,6 +22,7 @@ import { login, validateLogin } from "@/utils/auth";
 
 const titles = {
   Login: "sidebar.login",
+  About: "sidebar.login",
   Share: "buttons.share",
   Files: "files.files",
   Settings: "sidebar.settings",
@@ -41,6 +43,11 @@ const routes = [
     path: "/login",
     name: "Login",
     component: Login,
+  },
+  {
+    path: "/about",
+    name: "About",
+    component: About,
   },
   {
     path: "/share",
