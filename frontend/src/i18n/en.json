@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "back": "Back",
     "cancel": "Cancel",
     "clear": "Clear",
     "close": "Close",
@@ -154,6 +155,20 @@
     "newDirMessage": "Name your new directory.",
     "newFile": "New file",
     "newFileMessage": "Name your new file.",
+    "newItem": "New",
+    "newItemMessage": "What would you like to create?",
+    "newItemFolder": "Folder",
+    "newItemFile": "File",
+    "newItemFileType": "Choose a file type.",
+    "newItemNamePlaceholder": "File name (without extension)",
+    "newItemCustomPlaceholder": "File name with extension",
+    "newItemCustomExt": "custom",
+    "newItemWrongPage": "Please go to \"My files\" before creating something new.",
+    "fileTypes": {
+      "txt": "Plain text",
+      "ini": "Config",
+      "custom": "Custom"
+    },
     "numberDirs": "Number of directories",
     "numberFiles": "Number of files",
     "rename": "Rename",
@@ -364,6 +379,7 @@
     "login": "Login",
     "logout": "Logout",
     "myFiles": "My files",
+    "new": "New",
     "newFile": "New file",
     "newFolder": "New folder",
     "preview": "Preview",

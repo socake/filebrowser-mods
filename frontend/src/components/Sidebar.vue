@@ -19,23 +19,13 @@
 
       <div v-if="user.perm.create">
         <button
-          @click="showHover('newDir')"
+          @click="newItem"
           class="action"
-          :aria-label="$t('sidebar.newFolder')"
-          :title="$t('sidebar.newFolder')"
+          :aria-label="$t('sidebar.new')"
+          :title="$t('sidebar.new')"
         >
-          <i class="material-icons">create_new_folder</i>
-          <span>{{ $t("sidebar.newFolder") }}</span>
-        </button>
-
-        <button
-          @click="showHover('newFile')"
-          class="action"
-          :aria-label="$t('sidebar.newFile')"
-          :title="$t('sidebar.newFile')"
-        >
-          <i class="material-icons">note_add</i>
-          <span>{{ $t("sidebar.newFile") }}</span>
+          <i class="material-icons">add</i>
+          <span>{{ $t("sidebar.new") }}</span>
         </button>
       </div>
 
@@ -251,6 +241,13 @@ export default {
     toUsers() {
       this.$router.push({ path: "/users" });
       this.closeHovers();
+    },
+    newItem() {
+      if (this.$route.path.startsWith("/files")) {
+        this.showHover("newItem");
+      } else {
+        this.$showError(this.$t("prompts.newItemWrongPage"), false);
+      }
     },
     help() {
       this.showHover("help");

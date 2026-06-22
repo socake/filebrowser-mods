@@ -1,5 +1,6 @@
 {
   "buttons": {
+    "back": "返回",
     "cancel": "取消",
     "clear": "清空",
     "close": "关闭",
@@ -154,6 +155,20 @@
     "newDirMessage": "请输入新文件夹的名称。",
     "newFile": "新建文件",
     "newFileMessage": "请输入新文件的名称。",
+    "newItem": "新建",
+    "newItemMessage": "你想新建什么？",
+    "newItemFolder": "文件夹",
+    "newItemFile": "文件",
+    "newItemFileType": "请选择文件类型。",
+    "newItemNamePlaceholder": "文件名（不含扩展名）",
+    "newItemCustomPlaceholder": "文件名（含扩展名）",
+    "newItemCustomExt": "自定义",
+    "newItemWrongPage": "请先进入「我的文件」再新建。",
+    "fileTypes": {
+      "txt": "纯文本",
+      "ini": "配置",
+      "custom": "自定义"
+    },
     "numberDirs": "文件夹数",
     "numberFiles": "文件数",
     "rename": "重命名",
@@ -364,6 +379,7 @@
     "login": "登录",
     "logout": "登出",
     "myFiles": "我的文件",
+    "new": "新建",
     "newFile": "新建文件",
     "newFolder": "新建文件夹",
     "preview": "预览",
