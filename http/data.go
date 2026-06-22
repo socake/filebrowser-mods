@@ -23,6 +23,9 @@ type data struct {
 	store    *storage.Storage
 	user     *users.User
 	raw      interface{}
+	// shareType holds the share Link.Type ("preview"/"download") for public
+	// share requests, so handlers can surface it to the frontend.
+	shareType string
 }
 
 // Check implements rules.Checker.

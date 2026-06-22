@@ -35,6 +35,12 @@ var withHashFile = func(fn handleFunc) handleFunc {
 
 		d.user = user
 
+		// Surface the share type to handlers. Empty (legacy links) -> "preview".
+		d.shareType = link.Type
+		if d.shareType != "download" {
+			d.shareType = "preview"
+		}
+
 		file, err := files.NewFileInfo(&files.FileOptions{
 			Fs:         d.user.Fs,
 			Path:       link.Path,
@@ -102,16 +108,22 @@ func ifPathWithName(r *http.Request) (id, filePath string) {
 	}
 }
 
+// sharedFileInfo wraps a FileInfo with the share type so the frontend share
+// page can decide whether to render a preview or trigger a direct download.
+type sharedFileInfo struct {
+	*files.FileInfo
+	ShareType string `json:"shareType"`
+}
+
 var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file := d.raw.(*files.FileInfo)
 
 	if file.IsDir {
 		file.Sorting = files.Sorting{By: "name", Asc: false}
 		file.ApplySort()
-		return renderJSON(w, r, file)
 	}
 
-	return renderJSON(w, r, file)
+	return renderJSON(w, r, &sharedFileInfo{FileInfo: file, ShareType: d.shareType})
 })
 
 var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {

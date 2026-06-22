@@ -145,10 +145,16 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 	}
 
+	shareType := body.Type
+	if shareType != "download" {
+		shareType = "preview"
+	}
+
 	s = &share.Link{
 		Path:         r.URL.Path,
 		Hash:         str,
 		Expire:       expire,
+		Type:         shareType,
 		UserID:       d.user.ID,
 		PasswordHash: string(hash),
 		Token:        token,

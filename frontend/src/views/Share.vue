@@ -1,6 +1,6 @@
 <template>
   <div>
-    <template v-if="!isPreviewable || !req?.content">
+    <template v-if="(!isPreviewable || !req?.content) && !isDownloadShare">
       <header-bar showMenu showLogo>
         <title />
 
@@ -76,8 +76,21 @@
       <errors v-else :errorCode="error.status" />
     </div>
     <div v-else-if="req !== null">
+      <!-- Download share mode: auto-triggers download, no preview -->
+      <div v-if="isDownloadShare" class="share-download">
+        <div class="share-download-card">
+          <i class="material-icons share-download-ic">file_download</i>
+          <h2>{{ t("prompts.shareDownloadStarting") }}</h2>
+          <p>{{ req.name }}</p>
+          <a :href="link" class="button button--flat">
+            <i class="material-icons">file_download</i>
+            {{ t("prompts.shareDownloadManual") }}
+          </a>
+        </div>
+      </div>
+
       <!-- Markdown preview mode -->
-      <div v-if="isMarkdownFile && req.content" class="share-md-preview">
+      <div v-else-if="isMarkdownFile && req.content" class="share-md-preview">
         <div class="share-md-header">
           <h3>{{ req.name }}</h3>
           <div class="share-md-actions">
@@ -408,6 +421,11 @@ watch(route, () => {
 
 const req = computed(() => fileStore.req);
 
+const isDownloadShare = computed(
+  () => (req.value as any)?.shareType === "download"
+);
+let downloadStarted = false;
+
 // Define computes
 
 const icon = computed(() => {
@@ -482,6 +500,16 @@ const fetchData = async () => {
 
     fileStore.updateRequest(file);
     document.title = `${file.name} - ${document.title}`;
+
+    // Download share: trigger the download immediately instead of previewing.
+    if ((file as any).shareType === "download" && !downloadStarted) {
+      downloadStarted = true;
+      hideSidebarForMdPreview();
+      // defer so the DOM (manual-download fallback) is in place first
+      setTimeout(() => {
+        window.location.href = link.value;
+      }, 100);
+    }
   } catch (err) {
     if (err instanceof Error) {
       error.value = err;
@@ -893,5 +921,37 @@ onMounted(() => {
   height: 0;
   border: none;
   border-radius: 0 0 8px 8px;
+}
+
+.share-download {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.share-download-card {
+  text-align: center;
+  padding: 2.5em 2em;
+}
+.share-download-ic {
+  font-size: 56px;
+  color: #1e9e5a;
+}
+.share-download-card h2 {
+  margin: 0.6em 0 0.2em;
+  font-size: 1.3em;
+  font-weight: 700;
+  color: #141414;
+}
+.share-download-card p {
+  color: #9a9a9e;
+  font-family: ui-monospace, Menlo, monospace;
+  margin-bottom: 1.4em;
+  word-break: break-all;
+}
+.share-download-card .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 </style>

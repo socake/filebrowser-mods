@@ -27,6 +27,8 @@ interface Share {
   userID?: number;
   token?: string;
   username?: string;
+  type?: "preview" | "download";
+  password_hash?: string;
 }
 
 interface SearchParams {

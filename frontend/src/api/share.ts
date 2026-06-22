@@ -19,22 +19,21 @@ export async function create(
   url: string,
   password = "",
   expires = "",
-  unit = "hours"
+  unit = "hours",
+  type = "preview"
 ) {
   url = removePrefix(url);
   url = `/api/share${url}`;
   if (expires !== "") {
     url += `?expires=${expires}&unit=${unit}`;
   }
-  let body = "{}";
-  if (password != "" || expires !== "" || unit !== "hours") {
-    body = JSON.stringify({
-      password: password,
-      expires: expires.toString(), // backend expects string not number
-      unit: unit,
-    });
-  }
-  return fetchJSON(url, {
+  const body = JSON.stringify({
+    password: password,
+    expires: expires.toString(), // backend expects string not number
+    unit: unit,
+    type: type,
+  });
+  return fetchJSON<Share>(url, {
     method: "POST",
     body: body,
   });
