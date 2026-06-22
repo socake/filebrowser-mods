@@ -1,256 +1,291 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="row" v-else-if="!layoutStore.loading && settings !== null">
-    <div class="column">
-      <form class="card" @submit.prevent="save">
-        <div class="card-title">
-          <h2>{{ t("settings.globalSettings") }}</h2>
-        </div>
+  <div
+    class="toc-wrap"
+    v-else-if="!layoutStore.loading && settings !== null"
+  >
+    <!-- 全局设置 -->
+    <form class="toc-card" @submit.prevent="save">
+      <div class="toc-card-head">
+        <h2 class="toc-card-title">{{ t("settings.globalSettings") }}</h2>
+      </div>
 
-        <div class="card-content">
-          <p>
-            <input type="checkbox" v-model="settings.signup" />
-            {{ t("settings.allowSignup") }}
-          </p>
+      <div class="toc-section">
+        <label class="toc-check">
+          <input type="checkbox" v-model="settings.signup" />
+          <span>{{ t("settings.allowSignup") }}</span>
+        </label>
+        <label class="toc-check">
+          <input type="checkbox" v-model="settings.createUserDir" />
+          <span>{{ t("settings.createUserDir") }}</span>
+        </label>
+        <label class="toc-check">
+          <input type="checkbox" v-model="settings.hideLoginButton" />
+          <span>{{ t("settings.hideLoginButton") }}</span>
+        </label>
+      </div>
 
-          <p>
-            <input type="checkbox" v-model="settings.createUserDir" />
-            {{ t("settings.createUserDir") }}
-          </p>
+      <div class="toc-field">
+        <label class="toc-label">{{ t("settings.userHomeBasePath") }}</label>
+        <input
+          class="toc-input"
+          type="text"
+          v-model="settings.userHomeBasePath"
+        />
+      </div>
 
-          <p>
-            <input type="checkbox" v-model="settings.hideLoginButton" />
-            {{ t("settings.hideLoginButton") }}
-          </p>
+      <div class="toc-field">
+        <label class="toc-label" for="minimumPasswordLength">{{
+          t("settings.minimumPasswordLength")
+        }}</label>
+        <vue-number-input
+          controls
+          v-model.number="settings.minimumPasswordLength"
+          id="minimumPasswordLength"
+          :min="1"
+        />
+      </div>
 
-          <p>
-            <label class="small">{{ t("settings.userHomeBasePath") }}</label>
-            <input
-              class="input input--block"
-              type="text"
-              v-model="settings.userHomeBasePath"
-            />
-          </p>
+      <div class="toc-field">
+        <label class="toc-label">{{ t("settings.rules") }}</label>
+        <p class="toc-hint">{{ t("settings.globalRules") }}</p>
+        <rules v-model:rules="settings.rules" />
+      </div>
 
-          <p>
-            <label for="minimumPasswordLength">{{
-              t("settings.minimumPasswordLength")
-            }}</label>
-            <vue-number-input
-              controls
-              v-model.number="settings.minimumPasswordLength"
-              id="minimumPasswordLength"
-              :min="1"
-            />
-          </p>
+      <div class="toc-actions">
+        <button class="toc-btn" type="submit">{{ t("buttons.update") }}</button>
+      </div>
+    </form>
 
-          <h3>{{ t("settings.rules") }}</h3>
-          <p class="small">{{ t("settings.globalRules") }}</p>
-          <rules v-model:rules="settings.rules" />
+    <!-- 新用户默认 -->
+    <form class="toc-card" @submit.prevent="save">
+      <div class="toc-card-head">
+        <h2 class="toc-card-title">{{ t("settings.userDefaults") }}</h2>
+        <p class="toc-card-sub">{{ t("settings.defaultUserDescription") }}</p>
+      </div>
 
-          <div v-if="enableExec">
-            <h3>{{ t("settings.executeOnShell") }}</h3>
-            <p class="small">{{ t("settings.executeOnShellDescription") }}</p>
-            <input
-              class="input input--block"
-              type="text"
-              placeholder="bash -c, cmd /c, ..."
-              v-model="shellValue"
-            />
-          </div>
+      <div class="toc-field">
+        <label class="toc-label" for="defaultRole">新用户默认角色</label>
+        <select
+          id="defaultRole"
+          class="toc-input"
+          v-model.number="defaultRoleID"
+        >
+          <option :value="0">{{ t("roles.noRole") }}</option>
+          <option v-for="r in roles" :key="r.id" :value="r.id">
+            {{ r.name }}
+          </option>
+        </select>
+        <p class="toc-hint">新注册用户将自动套用所选角色的权限。</p>
+      </div>
 
-          <h3>{{ t("settings.branding") }}</h3>
+      <div class="toc-field">
+        <label class="toc-label" for="default-scope">{{
+          t("settings.scope")
+        }}</label>
+        <input
+          id="default-scope"
+          class="toc-input"
+          type="text"
+          v-model="settings.defaults.scope"
+        />
+      </div>
 
-          <i18n-t
-            keypath="settings.brandingHelp"
-            tag="p"
-            class="small"
-            scope="global"
-          >
-            <a
-              class="link"
-              target="_blank"
-              href="https://filebrowser.org/configuration.html#custom-branding"
-              >{{ t("settings.documentation") }}</a
-            >
-          </i18n-t>
+      <div class="toc-field">
+        <label class="toc-label">{{ t("settings.language") }}</label>
+        <languages
+          class="toc-input"
+          v-model:locale="settings.defaults.locale"
+        ></languages>
+      </div>
 
-          <p>
-            <input
-              type="checkbox"
-              v-model="settings.branding.disableExternal"
-              id="branding-links"
-            />
-            {{ t("settings.disableExternalLinks") }}
-          </p>
+      <div class="toc-actions">
+        <button class="toc-btn" type="submit">{{ t("buttons.update") }}</button>
+      </div>
+    </form>
 
-          <p>
-            <input
-              type="checkbox"
-              v-model="settings.branding.disableUsedPercentage"
-              id="branding-used-disk"
-            />
-            {{ t("settings.disableUsedDiskPercentage") }}
-          </p>
+    <!-- 品牌与外观 -->
+    <form class="toc-card" @submit.prevent="save">
+      <div class="toc-card-head">
+        <h2 class="toc-card-title">{{ t("settings.branding") }}</h2>
+      </div>
 
-          <p>
-            <label for="theme">{{ t("settings.themes.title") }}</label>
-            <themes
-              class="input input--block"
-              v-model:theme="settings.branding.theme"
-              id="theme"
-            ></themes>
-          </p>
+      <i18n-t
+        keypath="settings.brandingHelp"
+        tag="p"
+        class="toc-hint"
+        scope="global"
+      >
+        <a
+          class="link"
+          target="_blank"
+          href="https://filebrowser.org/configuration.html#custom-branding"
+          >{{ t("settings.documentation") }}</a
+        >
+      </i18n-t>
 
-          <p>
-            <label for="branding-name">{{ t("settings.instanceName") }}</label>
-            <input
-              class="input input--block"
-              type="text"
-              v-model="settings.branding.name"
-              id="branding-name"
-            />
-          </p>
-
-          <p>
-            <label for="branding-files">{{
-              t("settings.brandingDirectoryPath")
-            }}</label>
-            <input
-              class="input input--block"
-              type="text"
-              v-model="settings.branding.files"
-              id="branding-files"
-            />
-          </p>
-
-          <h3>{{ t("settings.tusUploads") }}</h3>
-
-          <p class="small">{{ t("settings.tusUploadsHelp") }}</p>
-
-          <div class="tusConditionalSettings">
-            <p>
-              <label for="tus-chunkSize">{{
-                t("settings.tusUploadsChunkSize")
-              }}</label>
-              <input
-                class="input input--block"
-                type="text"
-                v-model="formattedChunkSize"
-                id="tus-chunkSize"
-              />
-            </p>
-
-            <p>
-              <label for="tus-retryCount">{{
-                t("settings.tusUploadsRetryCount")
-              }}</label>
-              <vue-number-input
-                controls
-                v-model.number="settings.tus.retryCount"
-                id="tus-retryCount"
-                :min="0"
-              />
-            </p>
-          </div>
-        </div>
-
-        <div class="card-action">
+      <div class="toc-section">
+        <label class="toc-check">
           <input
-            class="button button--flat"
-            type="submit"
-            :value="t('buttons.update')"
+            type="checkbox"
+            v-model="settings.branding.disableExternal"
+            id="branding-links"
           />
-        </div>
-      </form>
-    </div>
-
-    <div class="column">
-      <form class="card" @submit.prevent="save">
-        <div class="card-title">
-          <h2>{{ t("settings.userDefaults") }}</h2>
-        </div>
-
-        <div class="card-content">
-          <p class="small">{{ t("settings.defaultUserDescription") }}</p>
-
-          <user-form
-            :isNew="false"
-            :isDefault="true"
-            v-model:user="settings.defaults"
-          />
-        </div>
-
-        <div class="card-action">
+          <span>{{ t("settings.disableExternalLinks") }}</span>
+        </label>
+        <label class="toc-check">
           <input
-            class="button button--flat"
-            type="submit"
-            :value="t('buttons.update')"
+            type="checkbox"
+            v-model="settings.branding.disableUsedPercentage"
+            id="branding-used-disk"
           />
-        </div>
-      </form>
-    </div>
+          <span>{{ t("settings.disableUsedDiskPercentage") }}</span>
+        </label>
+      </div>
 
-    <div class="column">
-      <form v-if="enableExec" class="card" @submit.prevent="save">
-        <div class="card-title">
-          <h2>{{ t("settings.commandRunner") }}</h2>
-        </div>
+      <div class="toc-field">
+        <label class="toc-label" for="theme">{{
+          t("settings.themes.title")
+        }}</label>
+        <themes
+          class="toc-input"
+          v-model:theme="settings.branding.theme"
+          id="theme"
+        ></themes>
+      </div>
 
-        <div class="card-content">
-          <i18n-t
-            keypath="settings.commandRunnerHelp"
-            tag="p"
-            class="small"
-            scope="global"
-          >
-            <code>FILE</code>
-            <code>SCOPE</code>
-            <a
-              class="link"
-              target="_blank"
-              href="https://filebrowser.org/configuration.html#command-runner"
-              >{{ t("settings.documentation") }}</a
-            >
-          </i18n-t>
+      <div class="toc-field">
+        <label class="toc-label" for="branding-name">{{
+          t("settings.instanceName")
+        }}</label>
+        <input
+          class="toc-input"
+          type="text"
+          v-model="settings.branding.name"
+          id="branding-name"
+        />
+      </div>
 
-          <div
-            v-for="(command, key) in settings.commands"
-            :key="key"
-            class="collapsible"
-          >
-            <input :id="key" type="checkbox" />
-            <label :for="key">
-              <p>{{ capitalize(key) }}</p>
-              <i class="material-icons">arrow_drop_down</i>
-            </label>
-            <div class="collapse">
-              <textarea
-                class="input input--block input--textarea"
-                v-model.trim="commandObject[key]"
-              ></textarea>
-            </div>
-          </div>
-        </div>
+      <div class="toc-field">
+        <label class="toc-label" for="branding-files">{{
+          t("settings.brandingDirectoryPath")
+        }}</label>
+        <input
+          class="toc-input"
+          type="text"
+          v-model="settings.branding.files"
+          id="branding-files"
+        />
+      </div>
 
-        <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="t('buttons.update')"
-          />
+      <div class="toc-actions">
+        <button class="toc-btn" type="submit">{{ t("buttons.update") }}</button>
+      </div>
+    </form>
+
+    <!-- 上传 -->
+    <form class="toc-card" @submit.prevent="save">
+      <div class="toc-card-head">
+        <h2 class="toc-card-title">{{ t("settings.tusUploads") }}</h2>
+        <p class="toc-card-sub">{{ t("settings.tusUploadsHelp") }}</p>
+      </div>
+
+      <div class="toc-field">
+        <label class="toc-label" for="tus-chunkSize">{{
+          t("settings.tusUploadsChunkSize")
+        }}</label>
+        <input
+          class="toc-input"
+          type="text"
+          v-model="formattedChunkSize"
+          id="tus-chunkSize"
+        />
+      </div>
+
+      <div class="toc-field">
+        <label class="toc-label" for="tus-retryCount">{{
+          t("settings.tusUploadsRetryCount")
+        }}</label>
+        <vue-number-input
+          controls
+          v-model.number="settings.tus.retryCount"
+          id="tus-retryCount"
+          :min="0"
+        />
+      </div>
+
+      <div class="toc-actions">
+        <button class="toc-btn" type="submit">{{ t("buttons.update") }}</button>
+      </div>
+    </form>
+
+    <!-- 命令执行 -->
+    <form
+      v-if="enableExec"
+      class="toc-card"
+      @submit.prevent="save"
+    >
+      <div class="toc-card-head">
+        <h2 class="toc-card-title">{{ t("settings.executeOnShell") }}</h2>
+        <p class="toc-card-sub">{{ t("settings.executeOnShellDescription") }}</p>
+      </div>
+
+      <div class="toc-field">
+        <input
+          class="toc-input"
+          type="text"
+          placeholder="bash -c, cmd /c, ..."
+          v-model="shellValue"
+        />
+      </div>
+
+      <i18n-t
+        keypath="settings.commandRunnerHelp"
+        tag="p"
+        class="toc-hint"
+        scope="global"
+      >
+        <code>FILE</code>
+        <code>SCOPE</code>
+        <a
+          class="link"
+          target="_blank"
+          href="https://filebrowser.org/configuration.html#command-runner"
+          >{{ t("settings.documentation") }}</a
+        >
+      </i18n-t>
+
+      <div
+        v-for="(command, key) in settings.commands"
+        :key="key"
+        class="collapsible"
+      >
+        <input :id="key" type="checkbox" />
+        <label :for="key">
+          <p>{{ capitalize(key) }}</p>
+          <i class="material-icons">arrow_drop_down</i>
+        </label>
+        <div class="collapse">
+          <textarea
+            class="input input--block input--textarea"
+            v-model.trim="commandObject[key]"
+          ></textarea>
         </div>
-      </form>
-    </div>
+      </div>
+
+      <div class="toc-actions">
+        <button class="toc-btn" type="submit">{{ t("buttons.update") }}</button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { settings as api } from "@/api";
+import { settings as api, roles as rolesApi } from "@/api";
 import { StatusError } from "@/api/utils";
 import Rules from "@/components/settings/Rules.vue";
 import Themes from "@/components/settings/Themes.vue";
-import UserForm from "@/components/settings/UserForm.vue";
+import Languages from "@/components/settings/Languages.vue";
 import { useLayoutStore } from "@/stores/layout";
 import { enableExec } from "@/utils/constants";
 import { getTheme, setTheme } from "@/utils/theme";
@@ -262,6 +297,8 @@ const error = ref<StatusError | null>(null);
 const originalSettings = ref<ISettings | null>(null);
 const settings = ref<ISettings | null>(null);
 const debounceTimeout = ref<number | null>(null);
+const roles = ref<Role[]>([]);
+const defaultRoleID = ref<number>(0);
 
 const commandObject = ref<{
   [key: string]: string[] | string;
@@ -347,8 +384,12 @@ const save = async () => {
     setTheme(newSettings.branding.theme);
   }
 
+  // defaultRoleID is not part of the ISettings type yet; attach it so it round
+  // trips to the backend (Settings.DefaultRoleID).
+  const payload = { ...newSettings, defaultRoleID: defaultRoleID.value };
+
   try {
-    await api.update(newSettings);
+    await api.update(payload);
     $showSuccess(t("settings.settingsUpdated"));
   } catch (e: any) {
     $showError(e);
@@ -407,6 +448,14 @@ onMounted(async () => {
     originalSettings.value = original;
     settings.value = newSettings;
     shellValue.value = newSettings.shell.join(" ");
+    defaultRoleID.value =
+      (original as { defaultRoleID?: number }).defaultRoleID ?? 0;
+
+    try {
+      roles.value = await rolesApi.list();
+    } catch {
+      roles.value = [];
+    }
   } catch (err) {
     if (err instanceof Error) {
       error.value = err;
@@ -423,3 +472,112 @@ onBeforeUnmount(() => {
   }
 });
 </script>
+
+<style scoped>
+.toc-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5em 1em 3em;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.toc-card {
+  background: #fff;
+  border: 1px solid var(--lumen-line, #ececee);
+  border-radius: 14px;
+  padding: 26px 28px;
+}
+.toc-card-head {
+  margin-bottom: 20px;
+}
+.toc-card-title {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 0;
+}
+.toc-card-sub {
+  font-size: 13px;
+  color: #9a9a9e;
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+.toc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.toc-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #232326;
+  cursor: pointer;
+}
+.toc-check input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--lumen-accent, #141414);
+  cursor: pointer;
+  margin: 0;
+}
+.toc-field {
+  margin-bottom: 18px;
+}
+.toc-field:last-of-type {
+  margin-bottom: 0;
+}
+.toc-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b6b70;
+  margin-bottom: 7px;
+}
+.toc-hint {
+  font-size: 12.5px;
+  color: #9a9a9e;
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+.toc-input,
+.toc-wrap :deep(.toc-input) {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #232326;
+  background: #fff;
+  border: 1px solid var(--lumen-line, #ececee);
+  border-radius: 9px;
+  box-shadow: none;
+  outline: none;
+}
+.toc-input:focus,
+.toc-wrap :deep(.toc-input):focus {
+  border-color: var(--lumen-accent, #141414);
+}
+.toc-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+.toc-btn {
+  height: 40px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--lumen-accent, #141414);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.toc-btn:hover {
+  opacity: 0.9;
+}
+</style>

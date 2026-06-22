@@ -24,6 +24,45 @@
         </div>
       </div>
 
+      <div class="mcp-token">
+        <div class="mcp-token-label">访问令牌</div>
+        <p class="mcp-token-desc">
+          直接生成 MCP 访问令牌，填入下方配置即可，无需运行 lumen login。
+        </p>
+        <div class="mcp-token-row">
+          <div class="mcp-expiry">
+            <button
+              v-for="opt in expiryOptions"
+              :key="opt.value"
+              class="mcp-expiry-btn"
+              :class="{ active: expiry === opt.value }"
+              type="button"
+              @click="expiry = opt.value"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+          <button
+            class="mcp-gen-btn"
+            type="button"
+            :disabled="generating"
+            @click="generateToken"
+          >
+            {{ generating ? "生成中…" : "生成令牌" }}
+          </button>
+        </div>
+        <p v-if="tokenError" class="mcp-token-err">{{ tokenError }}</p>
+        <div v-if="generatedToken" class="mcp-token-result">
+          <div class="mcp-code">
+            <pre>{{ generatedToken }}</pre>
+            <button class="mcp-copy" @click="copy(generatedToken, 'tok')">
+              {{ copied === "tok" ? "已复制" : "复制" }}
+            </button>
+          </div>
+          <div class="mcp-token-expiry-text">{{ expiresText }}</div>
+        </div>
+      </div>
+
       <h3 class="mcp-h3">可用工具</h3>
       <div class="mcp-tools">
         <div class="mcp-tool" v-for="tool in tools" :key="tool.name">
@@ -84,8 +123,50 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { fetchURL } from "@/api/utils";
 
 const origin = window.location.origin;
+
+type Expiry = "permanent" | "7d" | "30d" | "90d" | "1y";
+
+const expiryOptions: { value: Expiry; label: string }[] = [
+  { value: "permanent", label: "永久" },
+  { value: "7d", label: "7 天" },
+  { value: "30d", label: "30 天" },
+  { value: "90d", label: "90 天" },
+  { value: "1y", label: "1 年" },
+];
+
+const expiry = ref<Expiry>("permanent");
+const generatedToken = ref("");
+const generating = ref(false);
+const tokenError = ref("");
+const expiresText = ref("");
+
+const generateToken = async () => {
+  generating.value = true;
+  tokenError.value = "";
+  try {
+    const res = await fetchURL("/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ expiry: expiry.value }),
+    });
+    const data = (await res.json()) as { token: string; expiresAt: number };
+    generatedToken.value = data.token;
+    if (!data.expiresAt) {
+      expiresText.value = "永久有效";
+    } else {
+      const d = new Date(data.expiresAt * 1000);
+      expiresText.value = `有效期至 ${d.toLocaleString()}`;
+    }
+  } catch (e) {
+    tokenError.value =
+      e instanceof Error ? e.message : "生成失败，请稍后重试";
+  } finally {
+    generating.value = false;
+  }
+};
 
 const tools = [
   { name: "list_files", desc: "列目录，返回名称/类型/大小/修改时间" },
@@ -106,7 +187,7 @@ const configJson = computed(() =>
           command: "/usr/local/bin/lumen-mcp",
           env: {
             LUMEN_SERVER: origin,
-            LUMEN_TOKEN: "<你的 token>",
+            LUMEN_TOKEN: generatedToken.value || "<你的 token>",
           },
         },
       },
@@ -193,6 +274,82 @@ const copy = (text: string, key: string) => {
   font-size: 14px;
   color: var(--lumen-accent, #141414);
   font-weight: 600;
+}
+.mcp-token {
+  background: #f7f7f8;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+.mcp-token-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9a9a9e;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.mcp-token-desc {
+  font-size: 13px;
+  color: #6b6b70;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+.mcp-token-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.mcp-expiry {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.mcp-expiry-btn {
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--lumen-line, #ececee);
+  border-radius: 7px;
+  background: #fff;
+  color: #6b6b70;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.mcp-expiry-btn.active {
+  background: var(--lumen-accent, #141414);
+  border-color: var(--lumen-accent, #141414);
+  color: #fff;
+}
+.mcp-gen-btn {
+  height: 32px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--lumen-accent, #141414);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.mcp-gen-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.mcp-token-err {
+  font-size: 12.5px;
+  color: #d23b3b;
+  margin: 10px 0 0;
+}
+.mcp-token-result {
+  margin-top: 12px;
+}
+.mcp-token-expiry-text {
+  font-size: 12.5px;
+  color: #6b6b70;
+  margin-top: 8px;
 }
 .mcp-h3 {
   font-size: 15px;

@@ -27,6 +27,7 @@ type Settings struct {
 	CreateUserDir         bool                `json:"createUserDir"`
 	UserHomeBasePath      string              `json:"userHomeBasePath"`
 	Defaults              UserDefaults        `json:"defaults"`
+	DefaultRoleID         uint                `json:"defaultRoleID"`
 	AuthMethod            AuthMethod          `json:"authMethod"`
 	LogoutPage            string              `json:"logoutPage"`
 	Branding              Branding            `json:"branding"`

@@ -168,6 +168,19 @@ var signupHandler = func(_ http.ResponseWriter, r *http.Request, d *data) (int, 
 
 	d.settings.Defaults.Apply(user)
 
+	// If a default role is configured, apply its permission template to the new
+	// user (the role's Permissions are copied into user.Perm; user.Perm remains
+	// the single source of truth for authorization). This supersedes the
+	// non-permission default scope/locale/etc. set above.
+	if d.settings.DefaultRoleID != 0 {
+		role, rerr := d.store.Roles.GetByID(d.settings.DefaultRoleID)
+		if rerr != nil {
+			return http.StatusInternalServerError, rerr
+		}
+		user.Perm = role.Permissions
+		user.RoleID = d.settings.DefaultRoleID
+	}
+
 	// Users signed up via the signup handler should never become admins, even
 	// if that is the default permission.
 	user.Perm.Admin = false

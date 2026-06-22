@@ -65,6 +65,8 @@ func NewHandler(
 	users.Handle("/{id:[0-9]+}", monkey(userGetHandler, "")).Methods("GET")
 	users.Handle("/{id:[0-9]+}", monkey(userDeleteHandler, "")).Methods("DELETE")
 
+	api.Handle("/token", monkey(tokenPostHandler, "")).Methods("POST")
+
 	roles := api.PathPrefix("/roles").Subrouter()
 	roles.Handle("", monkey(rolesGetHandler, "")).Methods("GET")
 	roles.Handle("", monkey(rolePostHandler, "")).Methods("POST")
