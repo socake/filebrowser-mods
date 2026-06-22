@@ -39,6 +39,42 @@
         </button>
       </div>
 
+      <button
+        v-if="user.perm.share"
+        class="action"
+        :class="{ 'sb-active': $route.path.startsWith('/shares') }"
+        @click="toShares"
+        :aria-label="$t('sidebar.shareManagement')"
+        :title="$t('sidebar.shareManagement')"
+      >
+        <i class="material-icons">share</i>
+        <span>{{ $t("sidebar.shareManagement") }}</span>
+      </button>
+
+      <button
+        v-if="user.perm.admin"
+        class="action"
+        :class="{ 'sb-active': $route.path.startsWith('/roles') }"
+        @click="toRoles"
+        :aria-label="$t('sidebar.roleManagement')"
+        :title="$t('sidebar.roleManagement')"
+      >
+        <i class="material-icons">verified_user</i>
+        <span>{{ $t("sidebar.roleManagement") }}</span>
+      </button>
+
+      <button
+        v-if="user.perm.admin"
+        class="action"
+        :class="{ 'sb-active': $route.path.startsWith('/users') }"
+        @click="toUsers"
+        :aria-label="$t('sidebar.userManagement')"
+        :title="$t('sidebar.userManagement')"
+      >
+        <i class="material-icons">group</i>
+        <span>{{ $t("sidebar.userManagement") }}</span>
+      </button>
+
       <div v-if="user.perm.admin">
         <button
           class="action"
@@ -202,6 +238,18 @@ export default {
     },
     toGlobalSettings() {
       this.$router.push({ path: "/settings/global" });
+      this.closeHovers();
+    },
+    toShares() {
+      this.$router.push({ path: "/shares" });
+      this.closeHovers();
+    },
+    toRoles() {
+      this.$router.push({ path: "/roles" });
+      this.closeHovers();
+    },
+    toUsers() {
+      this.$router.push({ path: "/users" });
       this.closeHovers();
     },
     help() {

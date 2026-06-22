@@ -29,8 +29,30 @@ interface Share {
   username?: string;
   type?: "preview" | "download";
   password_hash?: string;
+  createdAt?: number;
 }
 
 interface SearchParams {
   [key: string]: string;
+}
+
+interface RolePermissions {
+  admin: boolean;
+  create: boolean;
+  rename: boolean;
+  modify: boolean;
+  delete: boolean;
+  share: boolean;
+  download: boolean;
+  execute: boolean;
+}
+
+interface Role {
+  id: number;
+  name: string;
+  description: string;
+  permissions: RolePermissions;
+  scope: string;
+  isPreset: boolean;
+  sort: number;
 }

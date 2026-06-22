@@ -9,7 +9,8 @@ import User from "@/views/settings/User.vue";
 import Settings from "@/views/Settings.vue";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
-import Shares from "@/views/settings/Shares.vue";
+import SharesManage from "@/views/SharesManage.vue";
+import Roles from "@/views/Roles.vue";
 import Errors from "@/views/Errors.vue";
 import { useAuthStore } from "@/stores/auth";
 import { baseURL, name } from "@/utils/constants";
@@ -23,9 +24,10 @@ const titles = {
   Files: "files.files",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",
-  Shares: "settings.shareManagement",
+  SharesManage: "settings.shareManagement",
+  Roles: "settings.roleManagement",
   GlobalSettings: "settings.globalSettings",
-  Users: "settings.users",
+  UsersManage: "settings.users",
   User: "settings.user",
   Forbidden: "errors.forbidden",
   NotFound: "errors.notFound",
@@ -64,6 +66,55 @@ const routes = [
     ],
   },
   {
+    path: "/shares",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "SharesManage",
+        component: SharesManage,
+      },
+    ],
+  },
+  {
+    path: "/roles",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "Roles",
+        component: Roles,
+      },
+    ],
+  },
+  {
+    path: "/users",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "UsersManage",
+        component: Users,
+      },
+      {
+        path: ":id",
+        name: "User",
+        component: User,
+      },
+    ],
+  },
+  {
     path: "/settings",
     component: Layout,
     meta: {
@@ -84,30 +135,9 @@ const routes = [
             component: ProfileSettings,
           },
           {
-            path: "shares",
-            name: "Shares",
-            component: Shares,
-          },
-          {
             path: "global",
             name: "GlobalSettings",
             component: GlobalSettings,
-            meta: {
-              requiresAdmin: true,
-            },
-          },
-          {
-            path: "users",
-            name: "Users",
-            component: Users,
-            meta: {
-              requiresAdmin: true,
-            },
-          },
-          {
-            path: "users/:id",
-            name: "User",
-            component: User,
             meta: {
               requiresAdmin: true,
             },

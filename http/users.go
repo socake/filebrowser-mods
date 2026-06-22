@@ -19,8 +19,17 @@ import (
 )
 
 var (
-	NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm", "Commands", "Rules"}
+	NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm", "RoleID", "Commands", "Rules"}
 )
+
+func appendIfMissing(fields []string, field string) []string {
+	for _, f := range fields {
+		if f == field {
+			return fields
+		}
+	}
+	return append(fields, field)
+}
 
 type modifyUserRequest struct {
 	modifyRequest
@@ -202,6 +211,39 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 
 	if req.Data.ID != d.raw.(uint) {
 		return http.StatusBadRequest, nil
+	}
+
+	// Role assignment: if a RoleID is provided that differs from the user's
+	// current role, copy the role's permissions into the user's Perm field
+	// (apply the template). The user's Perm remains the single source of truth,
+	// so individual fields can still be overridden afterwards.
+	if req.Data.RoleID != 0 {
+		if !d.user.Perm.Admin {
+			return http.StatusForbidden, nil
+		}
+
+		var current *users.User
+		current, err = d.store.Users.Get(d.server.Root, d.raw.(uint))
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		if current.RoleID != req.Data.RoleID {
+			var role *users.Role
+			role, err = d.store.Roles.GetByID(req.Data.RoleID)
+			if err != nil {
+				return errToStatus(err), err
+			}
+
+			req.Data.Perm = role.Permissions
+
+			// In partial-update mode (a non-empty Which that is not "all"),
+			// make sure Perm and RoleID actually get persisted.
+			if !(len(req.Which) == 0 || (len(req.Which) == 1 && req.Which[0] == "all")) {
+				req.Which = appendIfMissing(req.Which, "Perm")
+				req.Which = appendIfMissing(req.Which, "RoleID")
+			}
+		}
 	}
 
 	if len(req.Which) == 0 || (len(req.Which) == 1 && req.Which[0] == "all") {

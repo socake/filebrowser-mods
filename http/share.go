@@ -158,6 +158,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		UserID:       d.user.ID,
 		PasswordHash: string(hash),
 		Token:        token,
+		CreatedAt:    time.Now().Unix(),
 	}
 
 	if err := d.store.Share.Save(s); err != nil {

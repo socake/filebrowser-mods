@@ -25,4 +25,8 @@ type Link struct {
 	// URL-Safe and is used to download links in password-protected shares via a
 	// query arg.
 	Token string `json:"token,omitempty"`
+	// CreatedAt is the Unix timestamp (seconds) when the share was created. Links
+	// created before this field existed have CreatedAt == 0, which should be
+	// treated as unknown/earliest for backward compatibility.
+	CreatedAt int64 `json:"createdAt"`
 }

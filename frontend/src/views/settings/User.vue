@@ -9,6 +9,22 @@
         </div>
 
         <div class="card-content" v-if="user">
+          <p v-if="roles.length">
+            <label for="role">{{ t("roles.assignRole") }}</label>
+            <select
+              id="role"
+              class="input input--block"
+              v-model.number="user.roleID"
+              @change="applyRole"
+            >
+              <option :value="0">{{ t("roles.noRole") }}</option>
+              <option v-for="r in roles" :key="r.id" :value="r.id">
+                {{ r.name }}
+              </option>
+            </select>
+            <span class="small">{{ t("roles.assignRoleHint") }}</span>
+          </p>
+
           <user-form
             v-model:user="user"
             v-model:createUserDir="createUserDir"
@@ -28,7 +44,7 @@
           >
             {{ $t("buttons.delete") }}
           </button>
-          <router-link to="/settings/users">
+          <router-link to="/users">
             <button
               class="button button--flat button--grey"
               :aria-label="$t('buttons.cancel')"
@@ -51,7 +67,7 @@
 <script setup lang="ts">
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
-import { users as api, settings } from "@/api";
+import { users as api, roles as rolesApi, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
 import { computed, inject, onMounted, ref, watch } from "vue";
@@ -66,6 +82,7 @@ const originalUser = ref<IUser>();
 const user = ref<IUser>();
 const createUserDir = ref<boolean>(false);
 const isCurrentPasswordRequired = ref<boolean>(false);
+const roles = ref<Role[]>([]);
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
@@ -80,7 +97,7 @@ onMounted(() => {
   fetchData();
 });
 
-const isNew = computed(() => route.path === "/settings/users/new");
+const isNew = computed(() => route.path === "/users/new");
 
 watch(route, () => fetchData());
 watch(user, () => {
@@ -92,6 +109,13 @@ const fetchData = async () => {
   layoutStore.loading = true;
 
   try {
+    try {
+      roles.value = await rolesApi.list();
+      roles.value.sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+    } catch {
+      roles.value = [];
+    }
+
     if (isNew.value) {
       const { defaults, createUserDir: _createUserDir } = await settings.get();
       isCurrentPasswordRequired.value = authMethod == "json";
@@ -103,6 +127,7 @@ const fetchData = async () => {
         rules: [],
         lockPassword: false,
         id: 0,
+        roleID: 0,
       };
     } else {
       const { authMethod } = await settings.get();
@@ -111,6 +136,7 @@ const fetchData = async () => {
         ? route.params.id.join("")
         : route.params.id;
       user.value = { ...(await api.get(parseInt(id))) };
+      if (user.value.roleID == null) user.value.roleID = 0;
     }
   } catch (err) {
     if (err instanceof Error) {
@@ -119,6 +145,25 @@ const fetchData = async () => {
   } finally {
     layoutStore.loading = false;
   }
+};
+
+const applyRole = () => {
+  if (!user.value) return;
+  const role = roles.value.find((r) => r.id === user.value!.roleID);
+  if (!role) return;
+  // 把角色权限填入页面权限勾选区，让管理员看到套用效果；
+  // 用户仍可在下方手动改个别权限字段（= 个人覆盖）。
+  user.value.perm = {
+    ...user.value.perm,
+    admin: role.permissions.admin,
+    create: role.permissions.create,
+    rename: role.permissions.rename,
+    modify: role.permissions.modify,
+    delete: role.permissions.delete,
+    share: role.permissions.share,
+    download: role.permissions.download,
+    execute: role.permissions.execute,
+  };
 };
 
 const deletePrompt = () => {
@@ -148,7 +193,7 @@ const deleteUser = async (currentPassword: string) => {
     if (user.value.id == authStore.user?.id) {
       logout();
     } else {
-      router.push({ path: "/settings/users" });
+      router.push({ path: "/users" });
     }
     $showSuccess(t("settings.userDeleted"));
   } catch (err) {
@@ -193,7 +238,7 @@ const send = async (currentPassword: string) => {
       };
 
       const loc = await api.create(newUser, currentPassword);
-      router.push({ path: loc || "/settings/users" });
+      router.push({ path: loc || "/users" });
       $showSuccess(t("settings.userCreated"));
     } else {
       await api.update(user.value, ["all"], currentPassword);

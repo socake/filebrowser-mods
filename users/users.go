@@ -30,6 +30,7 @@ type User struct {
 	SingleClick           bool          `json:"singleClick"`
 	RedirectAfterCopyMove bool          `json:"redirectAfterCopyMove"`
 	Perm                  Permissions   `json:"perm"`
+	RoleID                uint          `json:"roleID"`
 	Commands              []string      `json:"commands"`
 	Sorting               files.Sorting `json:"sorting"`
 	Fs                    afero.Fs      `json:"-" yaml:"-"`

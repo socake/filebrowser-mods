@@ -5,7 +5,7 @@
       <div class="card">
         <div class="card-title">
           <h2>{{ t("settings.users") }}</h2>
-          <router-link to="/settings/users/new"
+          <router-link to="/users/new"
             ><button class="button">
               {{ t("buttons.new") }}
             </button></router-link
@@ -29,7 +29,7 @@
               </td>
               <td>{{ user.scope }}</td>
               <td class="small">
-                <router-link :to="'/settings/users/' + user.id"
+                <router-link :to="'/users/' + user.id"
                   ><i class="material-icons">mode_edit</i></router-link
                 >
               </td>

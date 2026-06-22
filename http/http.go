@@ -65,6 +65,13 @@ func NewHandler(
 	users.Handle("/{id:[0-9]+}", monkey(userGetHandler, "")).Methods("GET")
 	users.Handle("/{id:[0-9]+}", monkey(userDeleteHandler, "")).Methods("DELETE")
 
+	roles := api.PathPrefix("/roles").Subrouter()
+	roles.Handle("", monkey(rolesGetHandler, "")).Methods("GET")
+	roles.Handle("", monkey(rolePostHandler, "")).Methods("POST")
+	roles.Handle("/{id:[0-9]+}", monkey(roleGetHandler, "")).Methods("GET")
+	roles.Handle("/{id:[0-9]+}", monkey(rolePutHandler, "")).Methods("PUT")
+	roles.Handle("/{id:[0-9]+}", monkey(roleDeleteHandler, "")).Methods("DELETE")
+
 	api.PathPrefix("/resources").Handler(monkey(resourceGetHandler, "/api/resources")).Methods("GET")
 	api.PathPrefix("/resources").Handler(monkey(resourceDeleteHandler(fileCache), "/api/resources")).Methods("DELETE")
 	api.PathPrefix("/resources").Handler(monkey(resourcePostHandler(fileCache), "/api/resources")).Methods("POST")
@@ -97,7 +104,6 @@ func NewHandler(
 	public.PathPrefix("/dl").Handler(monkey(publicDlHandler, "/api/public/dl/")).Methods("GET")
 	public.PathPrefix("/share").Handler(monkey(publicShareHandler, "/api/public/share/")).Methods("GET")
 	public.Handle("/upload", monkey(publicUploadHandler, "")).Methods("POST")
-
 
 	return stripPrefix(server.BaseURL, r), nil
 }
