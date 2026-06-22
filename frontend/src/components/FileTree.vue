@@ -276,7 +276,7 @@ watch(
 }
 .lumen-tree-head .x:hover {
   background: #f3f3f4;
-  color: #141414;
+  color: var(--lumen-accent);
 }
 .lumen-tree-head .x .material-icons {
   font-size: 17px;
@@ -317,7 +317,7 @@ watch(
 }
 .ti .chev:hover {
   background: rgba(20, 20, 20, 0.08);
-  color: #141414;
+  color: var(--lumen-accent);
 }
 .ti.open .chev {
   transform: rotate(90deg);

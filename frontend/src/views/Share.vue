@@ -931,7 +931,7 @@ onMounted(() => {
   margin: 0.6em 0 0.2em;
   font-size: 1.3em;
   font-weight: 700;
-  color: #141414;
+  color: var(--lumen-accent);
 }
 .share-download-card p {
   color: #9a9a9e;
@@ -947,7 +947,7 @@ onMounted(() => {
 
 /* ===== LumenBrowser clean white share page ===== */
 .ls-page {
-  --ls-ink: #141414;
+  --ls-ink: var(--lumen-accent);
   --ls-t2: #5f5f63;
   --ls-t3: #9a9a9e;
   --ls-line: #ececee;
@@ -1233,12 +1233,12 @@ onMounted(() => {
 }
 .ls-pw-ic .material-icons {
   font-size: 26px;
-  color: #141414;
+  color: var(--lumen-accent);
 }
 .ls-pw-title {
   font-size: 18px;
   font-weight: 750;
-  color: #141414;
+  color: var(--lumen-accent);
   margin: 0 0 6px;
 }
 .ls-pw-hint {
@@ -1258,7 +1258,7 @@ onMounted(() => {
   transition: 0.14s;
 }
 .ls-pw-field:focus {
-  border-color: #141414;
+  border-color: var(--lumen-accent);
 }
 .ls-pw-wrong {
   color: #e5484d;
@@ -1271,7 +1271,7 @@ onMounted(() => {
   margin-top: 16px;
   border: 0;
   border-radius: 11px;
-  background: #141414;
+  background: var(--lumen-accent);
   color: #fff;
   font-size: 14px;
   font-weight: 650;

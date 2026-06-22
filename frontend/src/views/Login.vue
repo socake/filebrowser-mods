@@ -207,7 +207,7 @@ onMounted(() => {
 
 /* 左：宣发 */
 #login.lumen-login .lp-promo {
-  background: #141414;
+  background: var(--lumen-accent);
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -244,13 +244,13 @@ onMounted(() => {
 #login.lumen-login .lp-logo { width: 52px; height: 52px; margin-bottom: 26px; }
 #login.lumen-login .lp-auth h2 { font-size: 27px; font-weight: 780; letter-spacing: -0.02em; margin: 0 0 6px; text-align: left; }
 #login.lumen-login .lp-sub { font-size: 14px; color: #9a9a9e; margin-bottom: 28px; }
-#login.lumen-login .lp-input { width: 100%; height: 46px; border: 1px solid #ececee; border-radius: 11px; padding: 0 14px; font-size: 14.5px; color: #141414; outline: none; transition: 0.15s; margin-bottom: 14px; background: #fff; box-sizing: border-box; }
-#login.lumen-login .lp-input:focus { border-color: #141414; box-shadow: 0 0 0 4px rgba(20, 20, 20, 0.05); }
+#login.lumen-login .lp-input { width: 100%; height: 46px; border: 1px solid #ececee; border-radius: 11px; padding: 0 14px; font-size: 14.5px; color: var(--lumen-accent); outline: none; transition: 0.15s; margin-bottom: 14px; background: #fff; box-sizing: border-box; }
+#login.lumen-login .lp-input:focus { border-color: var(--lumen-accent); box-shadow: 0 0 0 4px rgba(20, 20, 20, 0.05); }
 #login.lumen-login .lp-input::placeholder { color: #c2c2c6; }
-#login.lumen-login .lp-btn { width: 100%; height: 48px; background: #141414; color: #fff; border: 0; border-radius: 12px; font-size: 15px; font-weight: 650; cursor: pointer; margin-top: 6px; transition: 0.15s; }
+#login.lumen-login .lp-btn { width: 100%; height: 48px; background: var(--lumen-accent); color: #fff; border: 0; border-radius: 12px; font-size: 15px; font-weight: 650; cursor: pointer; margin-top: 6px; transition: 0.15s; }
 #login.lumen-login .lp-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -12px rgba(20, 20, 20, 0.4); }
 #login.lumen-login .lp-toggle { margin-top: 18px; font-size: 13px; color: #5f5f63; cursor: pointer; text-align: center; }
-#login.lumen-login .lp-toggle:hover { color: #141414; }
+#login.lumen-login .lp-toggle:hover { color: var(--lumen-accent); }
 #login.lumen-login .wrong { background: #fde8e8; color: #c0392b; padding: 10px 12px; border-radius: 9px; font-size: 13px; margin-bottom: 14px; text-align: center; }
 #login.lumen-login .logout-message { background: #fff4e5; color: #b76e00; padding: 10px 12px; border-radius: 9px; font-size: 13px; margin-bottom: 14px; text-align: center; text-transform: none; }
 #login.lumen-login #recaptcha { margin-bottom: 14px; }

@@ -311,7 +311,7 @@ export default {
 
 <style scoped>
 .lumen-share {
-  --ink: #141414;
+  --ink: var(--lumen-accent);
   --t2: #5f5f63;
   --t3: #9a9a9e;
   --line: #ececee;

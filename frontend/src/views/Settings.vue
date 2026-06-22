@@ -10,6 +10,11 @@
               {{ t("settings.profileSettings") }}
             </li></router-link
           >
+          <router-link to="/settings/mcp"
+            ><li :class="{ active: $route.path === '/settings/mcp' }">
+              MCP 接入
+            </li></router-link
+          >
           <router-link to="/settings/global" v-if="user?.perm.admin"
             ><li :class="{ active: $route.path === '/settings/global' }">
               {{ t("settings.globalSettings") }}

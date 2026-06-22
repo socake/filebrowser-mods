@@ -1,5 +1,7 @@
 :root {
-  --blue: #141414;
+  /* LumenBrowser 语义主色：纯白 To C 风的近黑 accent，全站唯一来源 */
+  --lumen-accent: #141414;
+  --blue: var(--lumen-accent);
   --dark-blue: #000000;
   --red: #f44336;
   --dark-red: #d32f2f;

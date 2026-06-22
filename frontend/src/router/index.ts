@@ -9,6 +9,7 @@ import User from "@/views/settings/User.vue";
 import Settings from "@/views/Settings.vue";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
+import McpSettings from "@/views/settings/McpSettings.vue";
 import SharesManage from "@/views/SharesManage.vue";
 import Roles from "@/views/Roles.vue";
 import Errors from "@/views/Errors.vue";
@@ -24,6 +25,7 @@ const titles = {
   Files: "files.files",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",
+  McpSettings: "sidebar.settings",
   SharesManage: "settings.shareManagement",
   Roles: "settings.roleManagement",
   GlobalSettings: "settings.globalSettings",
@@ -133,6 +135,11 @@ const routes = [
             path: "profile",
             name: "ProfileSettings",
             component: ProfileSettings,
+          },
+          {
+            path: "mcp",
+            name: "McpSettings",
+            component: McpSettings,
           },
           {
             path: "global",

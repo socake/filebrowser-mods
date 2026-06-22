@@ -61,9 +61,7 @@
       <div v-if="selected.size > 0" class="bulk">
         <span class="cnt">已选中 {{ selected.size }} 项</span>
         <span class="sp"></span>
-        <button class="b-ghost" @click="bulkSetExpire">
-          <i class="material-icons">schedule</i>批量设过期
-        </button>
+        <!-- 批量设过期已移除：后端暂无更新分享(share)的 API -->
         <button class="b-del" @click="bulkDelete">
           <i class="material-icons">delete</i>批量删除
         </button>
@@ -399,14 +397,11 @@ const bulkDelete = () => {
   });
 };
 
-const bulkSetExpire = () => {
-  $showSuccess("批量设置过期功能即将上线");
-};
 </script>
 
 <style scoped>
 .shares-main {
-  --ink: #141414;
+  --ink: var(--lumen-accent);
   --t2: #5f5f63;
   --t3: #9a9a9e;
   --line: #ececee;
@@ -415,7 +410,7 @@ const bulkSetExpire = () => {
   --blue: #2f7bf6;
   --green: #1e9e5a;
   --red: #e5484d;
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 28px 34px;
   color: var(--ink);

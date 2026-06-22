@@ -254,3 +254,83 @@ const send = async (currentPassword: string) => {
   }
 };
 </script>
+
+<style scoped>
+/* To C 卡片化：表单收窄居中，不再全宽撑满（不影响 /files 全宽列表） */
+.row {
+  display: block;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 24px;
+}
+.row .column {
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+.row .card {
+  margin: 0;
+  background: #fff;
+  border: 1px solid #ececee;
+  border-radius: 16px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.05);
+  overflow: visible;
+}
+.row .card .card-title {
+  padding: 22px 26px 4px;
+  display: block;
+}
+.row .card .card-title h2 {
+  font-size: 21px;
+  font-weight: 760;
+  letter-spacing: -0.01em;
+  color: var(--lumen-accent);
+  margin: 0;
+}
+.row .card .card-content {
+  padding: 10px 26px 6px;
+}
+.row .card .card-action {
+  padding: 14px 26px 22px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 表单标签 / 段落（含子组件 UserForm 的输入项） */
+.card-content :deep(p) {
+  margin: 0 0 16px;
+}
+.card-content :deep(label) {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #5f5f63;
+  margin: 0 0 6px;
+}
+.card-content :deep(.small) {
+  color: #9a9a9e;
+}
+
+/* 输入框：收窄，不再 100% 撑满 */
+.card-content :deep(.input--block) {
+  width: 100%;
+  max-width: 440px;
+  min-height: 40px;
+  border: 1px solid #e2e2e5;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #fff;
+  box-sizing: border-box;
+}
+.card-content :deep(textarea.input--block) {
+  padding: 8px 12px;
+  max-width: 100%;
+}
+.card-content :deep(.input--block:focus) {
+  border-color: var(--lumen-accent);
+}
+</style>

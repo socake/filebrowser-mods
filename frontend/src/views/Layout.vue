@@ -16,7 +16,7 @@
         "
       />
     </main>
-    <file-tree v-if="authStore.isLoggedIn"></file-tree>
+    <file-tree v-if="authStore.isLoggedIn && isFilesPage"></file-tree>
     <prompts></prompts>
     <upload-files></upload-files>
   </div>
@@ -42,6 +42,9 @@ const fileStore = useFileStore();
 const uploadStore = useUploadStore();
 const route = useRoute();
 
+// 目录树面板只在「我的文件」页显示，避免挤压分享/角色/用户管理等页面
+const isFilesPage = computed(() => route.path.startsWith("/files"));
+
 const sentPercent = computed(() =>
   ((uploadStore.sentBytes / uploadStore.totalBytes) * 100).toFixed(2)
 );
@@ -58,7 +61,7 @@ watch(route, () => {
 watchEffect(() => {
   document.body.classList.toggle(
     "lumen-tree-open",
-    authStore.isLoggedIn && layoutStore.showFileTree
+    authStore.isLoggedIn && layoutStore.showFileTree && isFilesPage.value
   );
 });
 

@@ -161,7 +161,7 @@ const permDefs: { key: PermKey; icon: string }[] = [
 ];
 
 const palette = [
-  "#141414",
+  "var(--lumen-accent)",
   "#2f7bf6",
   "#1e9e5a",
   "#9a9a9e",
@@ -340,13 +340,13 @@ async function submitModal() {
 
 <style scoped>
 .roles-main {
-  --ink: #141414;
+  --ink: var(--lumen-accent);
   --t2: #5f5f63;
   --t3: #9a9a9e;
   --line: #ececee;
   --line2: #e2e2e5;
   --soft: #f3f3f4;
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 28px 34px;
   color: var(--ink);
@@ -650,7 +650,7 @@ async function submitModal() {
 
 /* 弹窗 */
 .modal-mask {
-  --ink: #141414;
+  --ink: var(--lumen-accent);
   --t2: #5f5f63;
   --t3: #9a9a9e;
   --line: #ececee;

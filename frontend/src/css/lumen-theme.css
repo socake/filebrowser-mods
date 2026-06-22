@@ -52,17 +52,17 @@ nav .sb-user {
 }
 nav .sb-user .material-icons {
   font-size: 26px !important;
-  color: #141414 !important;
+  color: var(--lumen-accent) !important;
 }
 nav .sb-user span {
   font-weight: 650;
   font-size: 1.05em;
-  color: #141414;
+  color: var(--lumen-accent);
 }
 
 /* 当前项高亮：我的文件 */
 nav .sb-active {
-  background: #141414 !important;
+  background: var(--lumen-accent) !important;
   color: #fff !important;
   font-weight: 600 !important;
 }
@@ -100,7 +100,7 @@ body.lumen-tree-open main {
 
 /* 顶栏目录树 toggle 按钮：激活态用近黑高亮，呼应主题 accent */
 header #filetree-toggle.action.active {
-  background: #141414 !important;
+  background: var(--lumen-accent) !important;
   color: #fff !important;
 }
 header #filetree-toggle.action.active .material-icons {

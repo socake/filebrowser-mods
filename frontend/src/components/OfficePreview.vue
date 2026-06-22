@@ -135,7 +135,7 @@ function onError(e?: unknown) {
   min-height: 240px;
   overflow: auto;
   background: #ffffff;
-  color: #141414;
+  color: var(--lumen-accent);
   box-sizing: border-box;
 }
 
@@ -155,7 +155,7 @@ function onError(e?: unknown) {
   padding: 2rem;
   text-align: center;
   background: #ffffff;
-  color: #141414;
+  color: var(--lumen-accent);
 }
 
 .office-state p {
@@ -177,7 +177,7 @@ function onError(e?: unknown) {
   border-radius: 50%;
   font-size: 1.6rem;
   font-weight: 700;
-  background: #141414;
+  background: var(--lumen-accent);
   color: #ffffff;
 }
 
@@ -189,7 +189,7 @@ function onError(e?: unknown) {
   width: 2.5rem;
   height: 2.5rem;
   border: 3px solid rgba(20, 20, 20, 0.15);
-  border-top-color: #141414;
+  border-top-color: var(--lumen-accent);
   border-radius: 50%;
   animation: office-spin 0.8s linear infinite;
 }
