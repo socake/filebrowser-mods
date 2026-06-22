@@ -74,23 +74,27 @@
       <h3 class="mcp-h3">配置步骤（以 Claude Desktop 为例）</h3>
       <ol class="mcp-steps">
         <li>
-          <div class="mcp-step-title">构建 lumen-mcp 可执行文件</div>
-          <div class="mcp-code">
-            <pre>{{ buildCmd }}</pre>
-            <button class="mcp-copy" @click="copy(buildCmd, 's1')">
-              {{ copied === "s1" ? "已复制" : "复制" }}
+          <div class="mcp-step-title">下载 lumen-mcp 可执行文件</div>
+          <div class="mcp-dl-row">
+            <select v-model="dlTarget" class="mcp-dl-sel">
+              <option v-for="t in dlTargets" :key="t.key" :value="t.key">{{ t.label }}</option>
+            </select>
+            <button class="mcp-gen-btn" type="button" :disabled="dling" @click="downloadMcp">
+              {{ dling ? "下载中…" : "下载" }}
             </button>
+          </div>
+          <p v-if="dlError" class="mcp-token-err">{{ dlError }}</p>
+          <div class="mcp-hint">
+            已自动识别你的系统（{{ detectedLabel }}）。下载后放到固定路径（如
+            <code>/usr/local/bin/lumen-mcp</code>），macOS / Linux 记得
+            <code>chmod +x lumen-mcp</code>。
           </div>
         </li>
         <li>
-          <div class="mcp-step-title">
-            用 lumen CLI 登录获取 token（写入 ~/.lumen/config.json）
-          </div>
-          <div class="mcp-code">
-            <pre>{{ loginCmd }}</pre>
-            <button class="mcp-copy" @click="copy(loginCmd, 's2')">
-              {{ copied === "s2" ? "已复制" : "复制" }}
-            </button>
+          <div class="mcp-step-title">生成访问令牌</div>
+          <div class="mcp-hint">
+            在上方「访问令牌」选有效期、点「生成令牌」，会自动填入下方配置；命令行用户也可
+            <code>{{ loginCmd }}</code>。
           </div>
         </li>
         <li>
@@ -176,8 +180,48 @@ const tools = [
   { name: "create_share", desc: "创建公开分享链接（preview/download）" },
 ];
 
-const buildCmd = "cd mcp && go build -o lumen-mcp .";
 const loginCmd = `lumen login ${origin} -u admin`;
+
+// MCP 二进制下载（各平台已交叉编译嵌入服务端，用户直接下载，无需自行构建）
+const dlTargets = [
+  { key: "windows-amd64", label: "Windows (x64)" },
+  { key: "darwin-arm64", label: "macOS (Apple 芯片 M1/M2/M3)" },
+  { key: "darwin-amd64", label: "macOS (Intel)" },
+  { key: "linux-amd64", label: "Linux (x64)" },
+];
+const detectDefault = () => {
+  const ua = navigator.userAgent;
+  if (/Win/i.test(ua)) return "windows-amd64";
+  if (/Mac/i.test(ua)) return "darwin-arm64";
+  return "linux-amd64";
+};
+const dlTarget = ref(detectDefault());
+const detectedLabel = computed(
+  () => dlTargets.find((t) => t.key === dlTarget.value)?.label ?? ""
+);
+const dling = ref(false);
+const dlError = ref("");
+const downloadMcp = async () => {
+  dling.value = true;
+  dlError.value = "";
+  try {
+    const [os, arch] = dlTarget.value.split("-");
+    const res = await fetchURL(`/api/mcp/download?os=${os}&arch=${arch}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = os === "windows" ? "lumen-mcp.exe" : "lumen-mcp";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    dlError.value = e instanceof Error ? e.message : "下载失败，请稍后重试";
+  } finally {
+    dling.value = false;
+  }
+};
 
 const configJson = computed(() =>
   JSON.stringify(
@@ -208,6 +252,9 @@ const copy = (text: string, key: string) => {
 </script>
 
 <style scoped>
+.mcp-dl-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.mcp-dl-sel { flex: 1; height: 40px; border: 1.5px solid var(--lumen-line, #ececee); border-radius: 9px; padding: 0 12px; font-size: 14px; background: #fff; color: #232326; outline: none; cursor: pointer; }
+.mcp-dl-sel:focus { border-color: var(--lumen-accent, #141414); }
 .mcp-wrap {
   max-width: 820px;
   margin: 0 auto;

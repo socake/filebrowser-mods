@@ -38,3 +38,6 @@ build/
 
 default.nix
 Dockerfile.dev
+
+# MCP 预构建二进制（build 时交叉编译生成，不入 git）
+http/mcpbin/lumen-mcp-*
